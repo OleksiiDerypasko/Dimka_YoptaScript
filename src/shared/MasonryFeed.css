@@ -1,0 +1,23 @@
+/* Список постів у один стовпець, без заднього контейнера */
+.feed-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+}
+
+/* Сам пост залишається як картка */
+.feed-item {
+  /* видаляємо будь-який фон полотна — залишаємо лише сам пост */
+  background: none;
+  border: none;
+  box-shadow: none;
+  padding: 0;
+}
+
+.feed-empty {
+  text-align: center;
+  color: #9ca3af;
+  padding: 32px 0;
+  font-size: 16px;
+}

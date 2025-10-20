@@ -1,0 +1,213 @@
+/* ... (всі стилі .profile-page, .profile-card, .avatarBox, .info, .btn і т.д. залишаються без змін) ... */
+.profile-page {
+  padding: 24px;
+  display: flex;
+  justify-content: center;
+}
+
+.profile-card {
+  width: 100%;
+  background: #1c1a20;
+  border: 1px solid #2b2931;
+  border-radius: 24px;
+  padding: 24px;
+  color: #f2f3f5;
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: 24px;
+}
+/* ... (всі стилі .avatarBox, .info, .stats, .actions, .btn і т.д. залишаються без змін) ... */
+/* ─── Avatar ─── */
+.avatarBox {
+  position: relative;
+  width: 200px;
+  height: 240px;
+  background: #121018;
+  border: 1px solid #2f2c38;
+  border-radius: 18px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.avatarImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.avatarStub {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 54px;
+  color: #c7d2fe;
+  background: #20202a;
+}
+.avatarEditBtn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid #ffffff26;
+  background: rgba(28, 28, 34, 0.75);
+  color: #eef2ff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(4px);
+  opacity: 1;
+  transform: none;
+  cursor: pointer;
+  transition: background .15s ease, border-color .15s ease;
+}
+.avatarEditBtn:hover {
+  background: rgba(46, 46, 58, 0.9);
+  border-color: #ffffff40;
+}
+/* ─── Right info ─── */
+.info { display: grid; gap: 14px; }
+.row {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  align-items: center;
+  gap: 10px;
+}
+.nameRow {
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 8px;
+}
+.fullName {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: .2px;
+}
+.editBtn {
+  height: 34px;
+  padding: 0 12px;
+  border-radius: 10px;
+  border: 1px solid #334155;
+  background: #23232b;
+  color: #e5e7eb;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: background .15s ease, border-color .15s ease, transform .05s ease;
+}
+.editBtn:hover { background: #2e2e38; border-color: #465569; }
+.editBtn:active { transform: translateY(1px); }
+.label {
+  color: #aeb3c0;
+  font-size: 13px;
+  letter-spacing: .3px;
+}
+.value {
+  background: #14131a;
+  border: 1px solid #2b2931;
+  border-radius: 12px;
+  padding: 10px 12px;
+  color: #f1f5f9;
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+}
+/* Stats bar */
+.stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-top: 6px;
+}
+.stat {
+  background: #14131a;
+  border: 1px solid #2b2931;
+  border-radius: 12px;
+  padding: 10px 12px;
+}
+.stat__label { color: #aeb3c0; font-size: 12px; margin-bottom: 4px; }
+.stat__val   { font-weight: 800; font-size: 18px; }
+/* Actions */
+.actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 6px;
+}
+.btn {
+  height: 40px;
+  padding: 0 14px;
+  border-radius: 12px;
+  border: 1px solid transparent;
+  font-weight: 700;
+  cursor: pointer;
+}
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.btn--primary {
+  background: #2b6cb0;
+  border-color: #2b6cb0;
+  color: #fff;
+}
+.btn--danger {
+  background: #6b1d1d;
+  border-color: #8b1f1f;
+  color: #fff;
+}
+/* Responsive */
+@media (max-width: 800px) {
+  .profile-card {
+    grid-template-columns: 1fr;
+  }
+  .avatarBox {
+    width: 100%;
+    max-width: 260px;
+    height: 260px;
+    margin: 0 auto;
+  }
+  .row { grid-template-columns: 100px 1fr; }
+}
+
+
+/* Центр і ОДНА колонка */
+.profile-page {
+  padding: 24px 16px;
+}
+
+/*
+ * ─── ОСНОВНА ЗМІНА ТУТ ───
+ * Збільшено ширину полотна з 1024px до 1200px (як у HomePage)
+ */
+.profile-layout {
+  width: 100%;
+  max-width: 1200px; /* Було 1024px */
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+/* Однакова “картковість” для обох блоків */
+.profile-card,
+.profile-right .pb-panel {
+  background: #171a22;
+  border: 1px solid #2a3040;
+  border-radius: 16px;
+  padding: 20px;
+  color: #e5e7eb;
+  box-shadow: 0 8px 26px rgba(0,0,0,.35);
+}
+
+/* Щоб не було “зсуву” праворуч */
+.profile-right .pb-panel { padding-top: 16px; }

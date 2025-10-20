@@ -1,0 +1,112 @@
+.post-page {
+  max-width: 960px;
+  margin: 24px auto;
+  padding: 0 16px;
+  color: #e5e7eb;
+}
+
+.post-state { padding: 16px; color: #cbd5e1; }
+.post-state--err { color: #ffb4b4; }
+
+.post-card {
+  background: #171a22;
+  border: 1px solid #2a3040;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 8px 26px rgba(0,0,0,.35);
+}
+
+.post-head { margin-bottom: 12px; }
+.post-title { margin: 0 0 6px; font-size: 28px; font-weight: 800; color: #fff; }
+.post-meta { display: flex; gap: 8px; align-items: center; color: #aeb3c0; font-size: 14px; }
+.post-dot { opacity: .5; }
+
+.post-cats { display: flex; gap: 8px; flex-wrap: wrap; margin: 8px 0 10px; }
+.post-cat { background: #0f131c; border: 1px solid #2a3040; border-radius: 999px; padding: 4px 10px; font-size: 12px; color: #cbd5e1; }
+.post-cat--loading { opacity: .7; }
+
+.post-body {
+  white-space: pre-wrap;
+  line-height: 1.6;
+  background: #0f131c;
+  border: 1px solid #2a3040;
+  border-radius: 12px;
+  padding: 14px;
+  margin: 12px 0 16px;
+}
+
+/* Дії та лічильники */
+.post-actions {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+  align-items: center;
+}
+.post-actions__left { display: flex; gap: 10px; flex-wrap: wrap; }
+.pa-btn {
+  height: 36px;
+  padding: 0 14px;
+  border-radius: 10px;
+  border: 1px solid #2a3040;
+  background: #0f131c;
+  color: #e5e7eb;
+  font-weight: 700;
+  cursor: pointer;
+}
+.pa-btn:hover { filter: brightness(1.05); }
+
+.post-actions__right { display: inline-flex; gap: 10px; align-items: center; }
+.pa-counter {
+  min-width: 42px;
+  height: 36px;
+  padding: 0 10px;
+  border-radius: 10px;
+  background: #0b0f1a;
+  border: 1px solid #2a3040;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-weight: 800;
+}
+
+/* Коментарі */
+.comments { margin-top: 22px; }
+.comments__title { margin: 0 0 10px; font-size: 18px; }
+
+.comment-form {
+  background: #171a22;
+  border: 1px solid #2a3040;
+  border-radius: 12px;
+  padding: 12px;
+  margin-bottom: 12px;
+}
+
+.comment-input {
+  width: 100%;
+  min-height: 40px;
+  max-height: 240px;
+  line-height: 1.5;
+  padding: 10px 12px;
+  color: #e5e7eb;
+  background: #0f131c;
+  border: 1px solid #2a3040;
+  border-radius: 10px;
+  resize: none;        /* ❗ Забороняємо ручне масштабування */
+  overflow: hidden;    /* авто-збільшення в JS */
+}
+
+.comment-actions { display: flex; justify-content: flex-end; margin-top: 10px; }
+.comment-submit {
+  height: 36px; padding: 0 14px; border-radius: 10px;
+  border: 1px solid #2a3040; background: #0f131c; color: #e5e7eb; font-weight: 700;
+}
+
+.comments__list { display: grid; gap: 10px; }
+.comment-item {
+  background: #141823;
+  border: 1px solid #2a3040;
+  border-radius: 12px;
+  padding: 10px 12px;
+}
+.comment-meta { display: flex; gap: 8px; color: #9aa6bd; font-size: 12px; margin-bottom: 6px; }
+.comment-dot { opacity: .6; }
+.comment-content { white-space: pre-wrap; line-height: 1.5; }
+.comment-empty { color: #aeb3c0; padding: 8px 2px; }

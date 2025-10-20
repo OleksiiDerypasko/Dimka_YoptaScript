@@ -1,0 +1,118 @@
+.pc {
+  background: #442c29;
+  border: 1px solid #2a1f1d;
+  border-radius: 14px;
+  padding: 16px;
+  color: #f5eddc;
+  box-shadow: 0 3px 14px rgba(0,0,0,.25);
+}
+
+.pc--line {
+  border-radius: 12px;
+}
+
+/* Header */
+.pc__head { margin-bottom: 8px; }
+.pc__title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 800;
+}
+.pc__author {
+  margin-top: 6px;
+  font-size: 14px;
+  color: #efd4b5;
+}
+
+/* Categories chips */
+.pc__cats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 8px 0 10px;
+}
+.pc__cat {
+  font-size: 12px;
+  color: #ffe7c8;
+  background: #5a3a36;
+  border: 1px solid #6d4742;
+  padding: 3px 8px;
+  border-radius: 999px;
+}
+.pc__cat--empty {
+  opacity: .7;
+  font-style: italic;
+}
+.pc__cat--loading {
+  opacity: .8;
+}
+
+/* Text preview */
+.pc__preview {
+  color: #ffeeda;
+  opacity: .95;
+  margin-bottom: 12px;
+}
+
+/* Footer with badges */
+.pc__foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.pc__date {
+  color: #f8e0ba;
+  opacity: .9;
+  font-size: 14px;
+}
+
+.pc__badges {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.pc-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: #3a2825;
+  border: 1px solid #553a36;
+  font-size: 12px;
+  color: #ffeeda;
+}
+
+.pc-badge__icon { line-height: 1; }
+.pc-badge__label {
+  opacity: .85;
+}
+.pc-badge__val {
+  font-weight: 800;
+}
+
+/* Базові стилі картки вже є у вас; додаю лише поведінку “усе клікабельне” */
+
+.pc--clickable {
+  cursor: pointer;
+  transition: transform .06s ease, box-shadow .12s ease, border-color .12s ease;
+}
+
+.pc--clickable:hover {
+  box-shadow: 0 8px 22px rgba(0,0,0,.35);
+  border-color: #3a3f51;
+}
+
+.pc--clickable:active {
+  transform: translateY(1px);
+}
+
+/* На випадок, якщо у .pc__title є <a>, прибираємо стандартне підкреслення */
+.pc__title a {
+  color: inherit;
+  text-decoration: none;
+}
+

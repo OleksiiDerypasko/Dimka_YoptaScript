@@ -1,4 +1,3 @@
-// src/app/layout/Header.jsx
 import React, { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
@@ -25,6 +24,7 @@ export default function Header() {
   const isAuthPage = pathname === '/login' || pathname === '/register';
   const showSearch = !isAuthPage;
   const showProfile = !isAuthPage && isAuthed;
+  const showAuthButtons = !isAuthPage && !isAuthed; // 👈 показываем login/register
 
   const username = user?.login ? `@${user.login}` : '@guest';
   const role = user?.role || 'guest';
@@ -48,7 +48,9 @@ export default function Header() {
       if (triggerRef.current?.contains(t)) return;
       setOpen(false);
     }
-    function onKey(e) { if (e.key === 'Escape') setOpen(false); }
+    function onKey(e) {
+      if (e.key === 'Escape') setOpen(false);
+    }
     document.addEventListener('mousedown', onDocClick);
     document.addEventListener('keydown', onKey);
     return () => {
@@ -57,9 +59,8 @@ export default function Header() {
     };
   }, [open]);
 
-  // real sign out
   const onSignOut = () => {
-    dispatch(logout());     // очищає localStorage + redux
+    dispatch(logout());
     setOpen(false);
     navigate('/login');
   };
@@ -85,7 +86,7 @@ export default function Header() {
           </form>
         </div>
 
-        {/* RIGHT: profile */}
+        {/* RIGHT: profile / auth buttons */}
         <div className="header__right">
           {showProfile && (
             <div
@@ -106,14 +107,14 @@ export default function Header() {
                 )}
               </div>
 
-              {/* Dropdown menu */}
+              {/* Dropdown */}
               {open && (
                 <div
                   className="account-menu"
                   ref={menuRef}
                   role="dialog"
                   aria-label="Account menu"
-                  onClick={(e) => e.stopPropagation()}  // не закривати при кліках всередині
+                  onClick={(e) => e.stopPropagation()}
                 >
                   <button
                     className="account-menu__close"
@@ -143,20 +144,44 @@ export default function Header() {
                     <button
                       className="segmented segmented--left"
                       type="button"
-                      onClick={(e) => e.stopPropagation()}
+                      onClick={() => {
+                        closeMenu();
+                        navigate('/profile');
+                      }}
                     >
                       Profile
                     </button>
                     <button
                       className="segmented segmented--right"
                       type="button"
-                      onClick={(e) => { e.stopPropagation(); onSignOut(); }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onSignOut();
+                      }}
                     >
                       Sign out
                     </button>
                   </div>
                 </div>
               )}
+            </div>
+          )}
+
+          {/* 👇 КНОПКИ LOGIN / REGISTER для гостей */}
+          {showAuthButtons && (
+            <div className="auth-buttons">
+              <button
+                className="auth-btn"
+                onClick={() => navigate('/login')}
+              >
+                Login
+              </button>
+              <button
+                className="auth-btn auth-btn--primary"
+                onClick={() => navigate('/register')}
+              >
+                Register
+              </button>
             </div>
           )}
         </div>

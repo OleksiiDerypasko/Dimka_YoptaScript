@@ -1,0 +1,66 @@
+.cmd {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  max-width: 560px;
+  background: #0b0f1a;
+  border: 1px solid #1f2937;
+  border-radius: 999px;
+  overflow: visible; /* щоб меню не обрізалося */
+}
+
+.cmd__input {
+  flex: 1;
+  height: 40px;
+  padding: 0 14px 0 16px;
+  color: #e5e7eb;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-size: 14px;
+}
+.cmd__input::placeholder { color: #818cf8aa; }
+
+.cmd__btn {
+  height: 40px;
+  padding: 0 14px;
+  border: none;
+  background: transparent;
+  color: #a5b4fc;
+  cursor: pointer;
+}
+
+/* dropdown */
+.cmd__menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  background: #0f172a;
+  border: 1px solid #1f2937;
+  border-radius: 12px;
+  box-shadow: 0 14px 36px rgba(0,0,0,.45);
+  overflow: hidden;
+  z-index: 1000;
+}
+
+.cmd__item {
+  width: 100%;
+  text-align: left;
+  border: 0;
+  background: transparent;
+  color: #e5e7eb;
+  padding: 10px 14px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+  cursor: pointer;
+}
+.cmd__item:hover,
+.cmd__item.is-active {
+  background: #111b34;
+}
+
+.cmd__title { font-weight: 700; }
+.cmd__group { font-size: 12px; color: #94a3b8; }

@@ -7,13 +7,17 @@ export const AUTH_SUCCESS = 'auth/success';
 export const AUTH_ERROR   = 'auth/error';
 export const AUTH_LOGOUT  = 'auth/logout';
 
-// Реєстрація: бек НЕ повертає token за OpenAPI, лише {id, login, email}
+export const AUTH_SET_USER = 'auth/setUser';
+export function setUser(user) {
+  return { type: AUTH_SET_USER, payload: user };
+}
+
+// Реєстрація
 export function registerUser({ login, password, passwordConfirm, fullName, email }) {
   return async (dispatch) => {
     dispatch({ type: AUTH_START });
     try {
       const res = await registerApi({ login, password, passwordConfirm, fullName, email });
-      // Можеш показати тост "Перевірте email для підтвердження", якщо це твоя UX-логіка.
       dispatch({ type: AUTH_SUCCESS, payload: { user: null, token: null, meta: { registered: true, echo: res } } });
       return true;
     } catch (e) {
@@ -23,7 +27,7 @@ export function registerUser({ login, password, passwordConfirm, fullName, email
   };
 }
 
-// Логін: зберігаємо токен, пробуємо підтягнути user через /api/users/{id} якщо JWT містить id
+// Логін
 export function loginUser({ login, email, password }) {
   return async (dispatch) => {
     dispatch({ type: AUTH_START });
@@ -34,7 +38,7 @@ export function loginUser({ login, email, password }) {
       let user = null;
       const uid = getUserIdFromToken(token);
       if (uid) {
-        try { user = await getUserByIdApi(uid); } catch { /* токен валідний, але профіль не підтягнувся — не критично */ }
+        try { user = await getUserByIdApi(uid); } catch {}
       }
 
       dispatch({ type: AUTH_SUCCESS, payload: { user, token } });
@@ -46,7 +50,7 @@ export function loginUser({ login, email, password }) {
   };
 }
 
-// Відновлення сесії на старті додатку (якщо токен вже збережений)
+// Відновлення сесії
 export function restoreSession() {
   return async (dispatch) => {
     const token = getToken();
@@ -62,7 +66,6 @@ export function restoreSession() {
       const user = await getUserByIdApi(uid);
       dispatch({ type: AUTH_SUCCESS, payload: { user, token } });
     } catch {
-      // якщо токен не підійшов — просто залишаємо токен (або можна скинути)
       dispatch({ type: AUTH_SUCCESS, payload: { user: null, token } });
     }
   };

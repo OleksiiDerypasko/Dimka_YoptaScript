@@ -1,0 +1,28 @@
+.feed {
+  padding: 20px 12px 36px;
+}
+
+/* панель фільтрів */
+.feed__filters {
+  margin: 0 auto 16px;
+  max-width: 1100px;
+}
+
+/* список – одна колонка, ширина = ширині фільтрів */
+.feed__list {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+}
+
+.feed__item {}
+
+/* стани */
+.feed__state {
+  max-width: 1100px;
+  margin: 24px auto;
+  color: #cbd5e1;
+}
+.feed__state--err { color: #ffb4b4; }

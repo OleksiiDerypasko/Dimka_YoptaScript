@@ -1,0 +1,109 @@
+.modalRoot {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+}
+
+.modalBackdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(10, 12, 18, 0.65);
+  backdrop-filter: blur(2px);
+}
+
+.modalCard {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: calc(100vw - 32px);
+  transform: translate(-50%, -50%);
+  background: #17171d;
+  color: #f3f4f6;
+  border: 1px solid #2b2f3a;
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
+  padding: 0;
+}
+
+.modalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border-bottom: 1px solid #252833;
+}
+
+.modalTitle {
+  font-weight: 800;
+  letter-spacing: .2px;
+}
+
+.modalClose {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  border: 1px solid #2b2f3a;
+  background: #1d1f27;
+  color: #e5e7eb;
+  cursor: pointer;
+}
+.modalClose:hover { background: #232633; }
+
+.modalBody {
+  padding: 16px;
+}
+
+/* форми всередині модалки */
+.modalForm { display: grid; gap: 12px; }
+.modalRow { display: grid; gap: 6px; }
+.modalLabel { font-size: 12px; color: #aeb3c0; }
+.modalInput,
+.modalFile {
+  height: 40px;
+  border-radius: 10px;
+  border: 1px solid #2b2f3a;
+  background: #12131a;
+  color: #f3f4f6;
+  padding: 0 12px;
+}
+.modalTextarea {
+  min-height: 90px;
+  border-radius: 10px;
+  border: 1px solid #2b2f3a;
+  background: #12131a;
+  color: #f3f4f6;
+  padding: 10px 12px;
+  resize: vertical;
+}
+
+.modalActions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 4px;
+}
+
+.btn {
+  height: 40px;
+  padding: 0 16px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  font-weight: 700;
+  cursor: pointer;
+}
+.btn:disabled { opacity: .7; cursor: not-allowed; }
+
+.btn-secondary {
+  background: #22242d;
+  border-color: #2b2f3a;
+  color: #e5e7eb;
+}
+.btn-secondary:hover { background: #272a35; }
+
+.btn-primary {
+  background: #4e7cff;
+  border-color: #4e7cff;
+  color: #fff;
+  box-shadow: 0 6px 18px rgba(78,124,255,.35);
+}
+.btn-primary:hover { filter: brightness(1.05); }

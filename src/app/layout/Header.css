@@ -1,9 +1,10 @@
 :root { --header-h: 64px; }
 
+/* ───────── Header shell ───────── */
 .main-header {
   height: var(--header-h);
   width: 100%;
-  background: #0f1115;       /* твоя плашка (далі зможеш редизайнити) */
+  background: #0f1115;
   color: #e5e7eb;
   display: flex;
   align-items: center;
@@ -11,7 +12,7 @@
 
 .header__container {
   display: grid;
-  grid-template-columns: 1fr minmax(360px, 600px) 1fr; /* ліво / центр / право */
+  grid-template-columns: 1fr minmax(360px, 600px) 1fr; /* left / center / right */
   align-items: center;
   gap: 16px;
   width: 100%;
@@ -21,7 +22,7 @@
   box-sizing: border-box;
 }
 
-/* LEFT */
+/* left: brand */
 .brand {
   color: #fff;
   font-weight: 800;
@@ -29,7 +30,7 @@
   text-decoration: none;
 }
 
-/* CENTER (search) */
+/* center: search */
 .header__center { display: flex; justify-content: center; }
 .header__center.is-hidden { display: none; }
 
@@ -49,7 +50,7 @@
   padding: 0 14px 0 16px;
   color: #e5e7eb;
   background: transparent;
-  border: none;
+  border: 0;
   outline: none;
   font-size: 14px;
 }
@@ -57,25 +58,27 @@
 .search__btn {
   height: 40px;
   padding: 0 14px;
-  border: none;
+  border: 0;
   background: transparent;
   color: #a5b4fc;
   cursor: pointer;
 }
 
-/* RIGHT (profile block) */
+/* right: profile block */
 .header__right { display: flex; justify-content: flex-end; }
 
 .profile {
+  position: relative;                  /* для дропдауна */
   display: grid;
-  grid-template-columns: auto 48px; /* текст + аватар */
-  grid-template-rows: 1fr 1fr;      /* 2 рядки тексту */
+  grid-template-columns: auto 48px;    /* text | avatar */
+  grid-template-rows: 1fr 1fr;         /* username / role */
   align-items: center;
   gap: 4px 12px;
+  cursor: pointer;
 }
 .profile__info {
   grid-column: 1 / 2;
-  grid-row: 1 / 3; /* займає два рядки по висоті */
+  grid-row: 1 / 3;                     /* займає два рядки */
   display: grid;
   grid-template-rows: 1fr 1fr;
   align-content: center;
@@ -93,7 +96,7 @@
 }
 .profile__avatar {
   grid-column: 2 / 3;
-  grid-row: 1 / 3;          /* аватар займає два рядки — всю висоту блоку */
+  grid-row: 1 / 3;                     /* на всю висоту блоку */
   width: 48px; height: 48px;
   border-radius: 999px;
   overflow: hidden;
@@ -102,8 +105,7 @@
   background: #1f2937;
 }
 .profile__avatar img {
-  width: 100%; height: 100%; object-fit: cover;
-  display: block;
+  width: 100%; height: 100%; object-fit: cover; display: block;
 }
 .avatar-fallback {
   width: 100%; height: 100%;
@@ -111,134 +113,23 @@
   font-weight: 800; font-size: 14px; color: #c7d2fe;
 }
 
-/* Адаптив: коли дуже вузько — звужуємо центр */
-@media (max-width: 860px) {
-  .header__container {
-    grid-template-columns: 1fr minmax(200px, 1.2fr) 1fr;
-  }
-}
-@media (max-width: 640px) {
-  .header__center { display: none; } /* за потреби ховаємо пошук на дуже вузьких */
-}
-
-:root { --header-h: 64px; }
-
-.main-header {
-  height: var(--header-h);
-  width: 100%;
-  background: #0f1115;
-  color: #e5e7eb;
-  display: flex;
-  align-items: center;
-}
-
-.header__container {
-  display: grid;
-  grid-template-columns: 1fr minmax(360px, 600px) 1fr; /* ліво / центр / право */
-  align-items: center;
-  gap: 16px;
-  width: 100%;
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 0 24px;
-  box-sizing: border-box;
-}
-
-.brand {
-  color: #fff;
-  font-weight: 800;
-  font-size: 18px;
-  text-decoration: none;
-}
-
-.header__center { display: flex; justify-content: center; }
-.header__center.is-hidden { display: none; }
-
-.search {
-  display: flex; align-items: center;
-  width: 100%; max-width: 560px;
-  background: #0b0f1a;
-  border: 1px solid #1f2937;
-  border-radius: 999px; overflow: hidden;
-}
-.search__input {
-  flex: 1; height: 40px; padding: 0 14px 0 16px;
-  color: #e5e7eb; background: transparent; border: 0; outline: none; font-size: 14px;
-}
-.search__input::placeholder { color: #818cf8aa; }
-.search__btn { height: 40px; padding: 0 14px; border: 0; background: transparent; color: #a5b4fc; cursor: pointer; }
-
-.header__right { display: flex; justify-content: flex-end; }
-
-/* Профіль + кнопка */
-.profile {
-  display: grid;
-  grid-template-columns: auto 48px auto; /* текст | аватар | кнопка */
-  grid-template-rows: 1fr 1fr;
-  align-items: center;
-  gap: 4px 12px;
-}
-.profile__info {
-  grid-column: 1 / 2;
-  grid-row: 1 / 3; /* два рядки */
-  display: grid; grid-template-rows: 1fr 1fr; align-content: center;
-}
-.profile__username { font-size: 14px; font-weight: 700; color: #fff; line-height: 1.2; }
-.profile__role { font-size: 12px; color: #94a3b8; line-height: 1.2; }
-
-.profile__avatar {
-  grid-column: 2 / 3; grid-row: 1 / 3;
-  width: 48px; height: 48px; border-radius: 999px; overflow: hidden;
-  border: 1px solid #334155; display: flex; align-items: center; justify-content: center; background: #1f2937;
-}
-.profile__avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.avatar-fallback { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 14px; color: #c7d2fe; }
-
-/* Тимчасова кнопка Log out */
-.btn-logout {
-  grid-column: 3 / 4;
-  grid-row: 1 / 3; /* по висоті блоку */
-  height: 36px;
-  padding: 0 12px;
-  border-radius: 10px;
-  border: 1px solid #334155;
-  background: #1f2937;
-  color: #e5e7eb;
-  font-weight: 700;
-  cursor: pointer;
-}
-.btn-logout:hover { background: #111827; }
-
-/* Адаптив */
-@media (max-width: 860px) {
-  .header__container { grid-template-columns: 1fr minmax(200px, 1.2fr) 1fr; }
-}
-@media (max-width: 640px) {
-  .header__center { display: none; } /* дуже вузько — ховаємо пошук */
-}
-
-
-/* Профіль (обгортка має бути позиційною для меню) */
-.profile { position: relative; cursor: pointer; }
-
-/* ===== Account Dropdown (як у Google) ===== */
+/* ───────── Account dropdown ───────── */
 .account-menu {
   position: absolute;
   top: calc(100% + 10px);
   right: 0;
   width: 320px;
-  background: #eef2ff; /* світла картка */
+  background: #eef2ff;
   color: #0f172a;
   border-radius: 16px;
   box-shadow:
     0 10px 30px rgba(2,6,23,.35),
-    0 1px 0 rgba(255,255,255,.3) inset;
+    0 1px 0 rgba(255,255,255,.30) inset;
   padding: 18px 16px 16px;
   box-sizing: border-box;
   z-index: 1000;
 }
 
-/* Хрестик */
 .account-menu__close {
   position: absolute;
   top: 10px; right: 10px;
@@ -252,7 +143,6 @@
 }
 .account-menu__close:hover { background: rgba(15,23,42,.08); }
 
-/* Email над аватаром */
 .account-menu__email {
   text-align: center;
   font-size: 12px;
@@ -261,7 +151,6 @@
   word-break: break-all;
 }
 
-/* Аватар великий по центру */
 .account-menu__avatarWrap {
   display: flex; justify-content: center; align-items: center;
   margin: 4px 0 10px;
@@ -273,19 +162,17 @@
   box-shadow: 0 2px 8px rgba(2,6,23,.15);
   background: #1f2937; color: #c7d2fe;
   display: flex; align-items: center; justify-content: center;
-  font-weight: 800;
-  font-size: 20px;
+  font-weight: 800; font-size: 20px;
 }
 .account-menu__avatar--fallback { border-color: #c7d2fe; }
 
-/* Привітання */
 .account-menu__hello {
   text-align: center;
   font-size: 16px;
   margin-bottom: 12px;
 }
 
-/* З’єднана пара кнопок */
+/* Segmented buttons (Profile / Sign out) — однаковий вигляд для <a> і <button> */
 .account-menu__actions {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -293,21 +180,74 @@
   border: 1px solid #cbd5e1;
   border-radius: 999px;
   overflow: hidden;
-  background: #fff;
+  background: #ffffff;
 }
-.segmented {
+
+.account-menu__actions .segmented,
+.account-menu__actions a.segmented {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   height: 40px;
+  padding: 0 16px;
+  font-weight: 700;
   border: 0;
   background: transparent;
-  cursor: pointer;
-  font-weight: 700;
   color: #0f172a;
+  cursor: pointer;
+  user-select: none;
+  text-decoration: none;         /* прибирає підкреслення у Link */
+  transition: background .15s ease, border-color .15s ease;
 }
-.segmented:hover { background: #f1f5f9; }
-.segmented--left  { border-right: 1px solid #cbd5e1; }
-.segmented--right {}
 
-/* дрібний фікс для very-narrow */
+.account-menu__actions .segmented:hover,
+.account-menu__actions a.segmented:hover,
+.account-menu__actions .segmented:focus-visible,
+.account-menu__actions a.segmented:focus-visible {
+  background: #f1f5f9;
+  outline: none;
+}
+
+.account-menu__actions .segmented--left  { border-right: 1px solid #cbd5e1; border-radius: 0; }
+.account-menu__actions .segmented--right { border-radius: 0; }
+
+/* ───────── Responsive ───────── */
+@media (max-width: 860px) {
+  .header__container { grid-template-columns: 1fr minmax(200px, 1.2fr) 1fr; }
+}
+@media (max-width: 640px) {
+  .header__center { display: none; }  /* дуже вузько — ховаємо пошук */
+}
 @media (max-width: 420px) {
   .account-menu { right: -8px; width: calc(100vw - 16px); }
+}
+
+/* ─── AUTH BUTTONS ─── */
+.auth-buttons {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.auth-btn {
+  height: 36px;
+  padding: 0 16px;
+  border-radius: 10px;
+  border: 1px solid #334155;
+  background: transparent;
+  color: #e5e7eb;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background .15s ease, color .15s ease;
+}
+.auth-btn:hover {
+  background: #1f2937;
+}
+.auth-btn--primary {
+  background: #3b82f6;
+  border-color: #3b82f6;
+  color: #fff;
+}
+.auth-btn--primary:hover {
+  filter: brightness(1.05);
 }
