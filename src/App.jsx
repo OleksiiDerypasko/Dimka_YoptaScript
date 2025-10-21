@@ -8,7 +8,11 @@ import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import NotFoundPage from './pages/NotFoundPage';
-import PostDetailsPage from './pages/PostDetailsPage'; 
+import PostDetailsPage from './pages/PostDetailsPage';
+import CreatePostPage from './pages/CreatePostPage'; 
+// src/App.jsx
+import EditPostPage from './pages/EditPostPage';
+
 
 import { restoreSession } from './features/auth/actions';
 
@@ -31,6 +35,8 @@ export default function App() {
           <Route path="/posts/:id" element={<PostDetailsPage />} /> 
           <Route path="/post/:id" element={<PostDetailsPage />} />
           <Route path="/profile" element={<ProfilePage />} /> {/* ← додано */}
+          <Route path="/posts/new" element={<CreatePostPage />} />
+          <Route path="/posts/:id/edit" element={<EditPostPage />} />
         </Routes>
       </main>
     </div>

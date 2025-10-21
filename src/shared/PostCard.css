@@ -116,3 +116,22 @@
   text-decoration: none;
 }
 
+.pc__head { position: relative; }
+.pc__edit {
+  position: absolute;
+  right: 0;
+  top: 0;
+  transform: translateY(-4px);
+  border: 1px solid var(--card-border, #242b39);
+  background: var(--bg-elev, #151922);
+  color: var(--text, #e5e7eb);
+  border-radius: 10px;
+  padding: 6px 10px;
+  cursor: pointer;
+}
+.pc__edit:hover {
+  border-color: var(--accent-weak, #3b82f6);
+  background: #1e293b;
+}
+
+

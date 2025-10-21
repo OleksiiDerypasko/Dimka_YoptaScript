@@ -24,14 +24,13 @@ export default function Header() {
   const isAuthPage = pathname === '/login' || pathname === '/register';
   const showSearch = !isAuthPage;
   const showProfile = !isAuthPage && isAuthed;
-  const showAuthButtons = !isAuthPage && !isAuthed; // 👈 показываем login/register
+  const showAuthButtons = !isAuthPage && !isAuthed;
 
   const username = user?.login ? `@${user.login}` : '@guest';
   const role = user?.role || 'guest';
   const email = user?.email || 'guest@example.com';
   const initials = getInitials(user);
 
-  // dropdown
   const [open, setOpen] = useState(false);
   const triggerRef = useRef(null);
   const menuRef = useRef(null);
@@ -140,34 +139,55 @@ export default function Header() {
                     Hello, <strong>{user?.fullName || user?.login || 'guest'}</strong>!
                   </div>
 
-                  <div className="account-menu__actions">
+                  {/* ---- Google-like list ---- */}
+                  <nav className="am-list" aria-label="Account actions">
+                    {/* Create post — зверху */}
                     <button
-                      className="segmented segmented--left"
                       type="button"
-                      onClick={() => {
-                        closeMenu();
-                        navigate('/profile');
-                      }}
+                      className="am-item am-item--primary"
+                      onClick={() => { closeMenu(); navigate('/posts/new'); }}
                     >
-                      Profile
+                      <span className="am-ic" aria-hidden>➕</span>
+                      <span className="am-text">
+                        <span className="am-title">Create post</span>
+                        <span className="am-sub">Share something great</span>
+                      </span>
                     </button>
-                    <button
-                      className="segmented segmented--right"
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onSignOut();
-                      }}
-                    >
-                      Sign out
-                    </button>
-                  </div>
+
+                    <div className="am-divider" role="separator" aria-hidden />
+
+                    <div className="am-row">
+                      <button
+                        type="button"
+                        className="am-item"
+                        onClick={() => { closeMenu(); navigate('/profile'); }}
+                      >
+                        <span className="am-ic" aria-hidden>👤</span>
+                        <span className="am-text">
+                          <span className="am-title">Profile</span>
+                          <span className="am-sub">View and edit profile</span>
+                        </span>
+                      </button>
+
+                      <button
+                        type="button"
+                        className="am-item"
+                        onClick={(e) => { e.stopPropagation(); onSignOut(); }}
+                      >
+                        <span className="am-ic" aria-hidden>🚪</span>
+                        <span className="am-text">
+                          <span className="am-title">Sign out</span>
+                          <span className="am-sub">Log out of account</span>
+                        </span>
+                      </button>
+                    </div>
+                  </nav>
                 </div>
               )}
             </div>
           )}
 
-          {/* 👇 КНОПКИ LOGIN / REGISTER для гостей */}
+          {/* КНОПКИ LOGIN / REGISTER для гостей */}
           {showAuthButtons && (
             <div className="auth-buttons">
               <button

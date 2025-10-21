@@ -251,3 +251,134 @@
 .auth-btn--primary:hover {
   filter: brightness(1.05);
 }
+
+/* --- кнопка створення поста у меню --- */
+.segmented--single {
+  display: block;
+  width: 100%;
+  margin-bottom: 8px;
+  border-radius: 8px;
+  background: var(--bg-elev, #151922);
+  border: 1px solid var(--card-border, #242b39);
+  padding: 8px 0;
+  color: var(--text, #e5e7eb);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.segmented--single:hover {
+  border-color: var(--accent-weak, #3b82f6);
+  background: #1e293b;
+}
+
+.segmented--primary {
+  border-color: var(--accent-weak, #3b82f6);
+  background: #1e293b;
+}
+
+/* ==== Google-like account menu list ==== */
+.account-menu {
+  /* картка меню */
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0,0,0,.35), 0 2px 8px rgba(0,0,0,.25);
+  background: var(--bg-elev, #151922);
+  border: 1px solid var(--card-border, #242b39);
+  padding: 14px 14px 10px;
+  width: 340px;
+}
+
+.account-menu__close {
+  position: absolute;
+  top: 8px; right: 10px;
+  background: transparent;
+  border: 0;
+  color: var(--text-dim, #9aa6b2);
+  font-size: 18px;
+  cursor: pointer;
+}
+.account-menu__close:hover { color: var(--text, #e5e7eb); }
+
+.account-menu__email {
+  margin: 2px 0 8px;
+  color: var(--text-dim, #9aa6b2);
+  font-size: 12px;
+}
+
+.account-menu__avatarWrap {
+  display: flex;
+  justify-content: center;
+  margin: 4px 0 10px;
+}
+.account-menu__avatar {
+  width: 56px; height: 56px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--card-border, #242b39);
+}
+.account-menu__avatar--fallback {
+  display: grid; place-items: center;
+  background: #1c2333;
+  color: var(--text, #e5e7eb);
+  font-weight: 700;
+}
+
+.account-menu__hello {
+  text-align: center;
+  margin-bottom: 10px;
+  color: var(--text, #e5e7eb);
+}
+
+/* список пунктів */
+.am-list { display: grid; gap: 8px; }
+.am-divider {
+  height: 1px;
+  background: var(--card-border, #242b39);
+  margin: 2px 0;
+  border-radius: 1px;
+}
+.am-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.am-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  text-align: left;
+  background: var(--bg, #0f1420);
+  border: 1px solid var(--card-border, #242b39);
+  color: var(--text, #e5e7eb);
+  border-radius: 14px;
+  padding: 10px 12px;
+  cursor: pointer;
+  transition: background .15s ease, border-color .15s ease, transform .02s ease;
+}
+.am-item:hover {
+  background: #1b2333;
+  border-color: var(--accent-weak, #3b82f6);
+}
+.am-item:active {
+  transform: translateY(1px);
+}
+
+.am-item--primary {
+  background: #1e293b;
+  border-color: var(--accent-weak, #3b82f6);
+}
+
+.am-ic {
+  display: grid;
+  place-items: center;
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: rgba(148,163,184,.12);
+  color: var(--text, #e5e7eb);
+  font-size: 14px;
+}
+
+.am-text { display: grid; line-height: 1.15; }
+.am-title { font-weight: 600; }
+.am-sub { color: var(--text-dim, #9aa6b2); font-size: 12px; margin-top: 2px; }

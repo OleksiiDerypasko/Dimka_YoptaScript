@@ -1,37 +1,45 @@
+// src/features/posts/postApi.js
 import { apiGet, apiPost, apiDelete } from '../../shared/lib/apiClient';
 
-// POSTS
+// ---- Posts ----
 export const getPostById = (id) => apiGet(`/api/posts/${id}`);
 export const getPostCategories = (id) => apiGet(`/api/posts/${id}/categories`);
-export const getPostLikesRaw = (id) => apiGet(`/api/posts/${id}/like`); // масив лайків (не обов'язково потрібен)
-
 export const listPostComments = (id) => apiGet(`/api/posts/${id}/comments`);
 
-// likes/dislikes
-export async function likePost(id, type, token) {
-  // type: 'like' | 'dislike'
-  // 1) спробувати створити лайк
-  try {
-    return await apiPost(`/api/posts/${id}/like`, { body: { type }, token });
-  } catch (e) {
-    // Якщо вже існує (409) — спробуємо видалити і створити заново (перемикання типу)
-    if (String(e.message).includes('409')) {
-      try { await apiDelete(`/api/posts/${id}/like`, { token }); } catch {}
-      return await apiPost(`/api/posts/${id}/like`, { body: { type }, token });
-    }
-    throw e;
-  }
+// ---- Reactions (likes/dislikes) ----
+// GET список усіх реакцій до поста: [{ authorId, type: 'like'|'dislike', ... }]
+export const listPostReactions = (postId) => apiGet(`/api/posts/${postId}/like`);
+
+// Поставити реакцію (type: 'like' | 'dislike')
+export const likePost = (postId, type /* 'like'|'dislike' */) =>
+  apiPost(`/api/posts/${postId}/like`, { type });
+
+// Зняти свою реакцію
+export const unlikePost = (postId) => apiDelete(`/api/posts/${postId}/like`);
+
+// ---- Favorites ----
+export const addFavoritePost = (postId) => apiPost(`/api/posts/${postId}/favorite`);
+export const removeFavoritePost = (postId) => apiDelete(`/api/posts/${postId}/favorite`);
+export const listUserFavorites = (userId) => apiGet(`/api/users/${userId}/favorites`);
+
+// ---- Comments ----
+export const createComment = (postId, content) =>
+  apiPost(`/api/comments`, { postId, content });
+
+export const deleteComment = (commentId, _tokenIgnored) =>
+  apiDelete(`/api/comments/${commentId}`);
+
+// ---- Reactions (comments) ----
+export const listCommentReactions = (commentId, _tokenIgnored) =>
+  apiGet(`/api/comments/${commentId}/like`); // Array<Like> { authorId, type }
+
+export const likeComment = (commentId, type, _tokenIgnored) =>
+  apiPost(`/api/comments/${commentId}/like`, { type }); // {type: 'like'|'dislike'}
+
+export const unlikeComment = (commentId, _tokenIgnored) =>
+  apiDelete(`/api/comments/${commentId}/like`);
+
+export async function countPostComments(postId) {
+  const list = await listPostComments(postId);
+  return Array.isArray(list) ? list.length : 0;
 }
-
-export const unlikePost = (id, token) => apiDelete(`/api/posts/${id}/like`, { token });
-
-// favorites
-export const addFavoritePost = (id, token) => apiPost(`/api/posts/${id}/favorite`, { token });
-export const removeFavoritePost = (id, token) => apiDelete(`/api/posts/${id}/favorite`, { token });
-
-// user favorites to detect initial favorite state
-export const listUserFavorites = (userId, token) => apiGet(`/api/users/${userId}/favorites`, { token });
-
-// COMMENTS
-export const createComment = (postId, content, token) =>
-  apiPost(`/api/comments`, { body: { postId: Number(postId), content }, token });

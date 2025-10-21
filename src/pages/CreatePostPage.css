@@ -1,0 +1,92 @@
+/* src/pages/CreatePostPage.css */
+
+.cpg {
+  padding: 24px;
+  display: flex;
+  justify-content: center;
+}
+
+.cpg__card {
+  width: 100%;
+  max-width: 760px;
+  border: 1px solid var(--card-border, #242b39);
+  border-radius: 16px;
+  background: var(--bg-elev, #151922);
+  color: var(--text, #e5e7eb);
+  padding: 20px 22px;
+  display: grid;
+  gap: 14px;
+}
+
+.cpg__title {
+  margin: 0 0 4px;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.cpg__field { display: grid; gap: 6px; }
+.cpg__label { color: var(--text-dim, #9aa6b2); font-size: 13px; }
+
+.cpg__input, .cpg__textarea {
+  width: 100%;
+  border: 1px solid var(--card-border, #242b39);
+  border-radius: 12px;
+  background: var(--bg, #0f1420);
+  color: var(--text, #e5e7eb);
+  padding: 10px 12px;
+  outline: none;
+}
+.cpg__input:focus, .cpg__textarea:focus {
+  border-color: var(--accent-weak, #3b82f6);
+  box-shadow: 0 0 0 3px rgba(59,130,246,.15);
+}
+
+.cpg__cats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.cpg__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--card-border, #242b39);
+  border-radius: 999px;
+  padding: 6px 12px;
+  cursor: pointer;
+  user-select: none;
+  background: var(--bg, #0f1420);
+  color: var(--text, #e5e7eb);
+  transition: border-color .15s, background .15s;
+}
+.cpg__chip input { display: none; }
+.cpg__chip:hover { border-color: var(--accent-weak, #3b82f6); }
+.cpg__chip.is-active {
+  background: #1e293b;
+  border-color: var(--accent-weak, #3b82f6);
+}
+
+.cpg__hint { color: var(--text-dim, #9aa6b2); font-size: 12px; }
+.cpg__err  { color: #ef4444; font-size: 13px; }
+
+.cpg__actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 6px;
+}
+
+.cpg-btn {
+  border: 1px solid var(--card-border, #242b39);
+  border-radius: 10px;
+  background: var(--bg-elev, #151922);
+  color: var(--text, #e5e7eb);
+  padding: 8px 14px;
+  cursor: pointer;
+}
+.cpg-btn:hover { border-color: var(--accent-weak, #3b82f6); }
+.cpg-btn:disabled { opacity: .6; cursor: not-allowed; }
+.cpg-btn--primary {
+  background: #1e293b;
+  border-color: var(--accent-weak, #3b82f6);
+}

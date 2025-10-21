@@ -35,7 +35,11 @@ export async function getPostByIdApi(id) {
 }
 
 // ----- Категорії поста -----
-// (використовуємо прямо у сторінці через fetch `/api/posts/{id}/categories`)
+export async function getPostCategoriesApi(id) {
+  const res = await fetch(`/api/posts/${id}/categories`, { headers: { Accept: 'application/json' } });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return res.json(); // Category[]
+}
 
 // ----- Коментарі поста -----
 export async function getPostCommentsApi(id) {
@@ -78,4 +82,54 @@ export async function clearPostReactionApi(id, token) {
   });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   return true;
+}
+
+/* ===================== Категорії ===================== */
+
+// ----- Список категорій -----
+export async function listCategoriesApi() {
+  const res = await fetch(`/api/categories`, { headers: { Accept: 'application/json' } });
+  if (!res.ok) {
+    const e = await res.json().catch(() => ({}));
+    throw new Error(e?.error || `HTTP ${res.status}`);
+  }
+  return res.json(); // Array<Category> { id, title, ... }
+}
+
+/* ===================== Створення / Оновлення поста ===================== */
+
+// ----- Створити (опублікувати) пост -----
+// body: { title: string, content: string, categories: number[] }
+export async function createPostApi(body, token) {
+  const res = await fetch(`/api/posts`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    const e = await res.json().catch(() => ({}));
+    throw new Error(e?.error || `HTTP ${res.status}`);
+  }
+  return res.json(); // -> Post
+}
+
+// ----- Оновити пост (тільки власник: title/content/categories) -----
+export async function updatePostApi(id, body, token) {
+  const res = await fetch(`/api/posts/${id}`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    // очікує PostUpdate: { title?, content?, categories?, status? }
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    const e = await res.json().catch(() => ({}));
+    throw new Error(e?.error || `HTTP ${res.status}`);
+  }
+  return res.json(); // -> Post
 }
