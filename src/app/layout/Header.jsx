@@ -1,8 +1,10 @@
+// src/app/layout/Header.jsx
 import React, { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { selectAuthUser, selectIsAuthed } from '../../features/auth/selectors';
 import { logout } from '../../features/auth/actions';
+import CommandSearch from '../../shared/CommandSearch';
 import './Header.css';
 
 function getInitials(user) {
@@ -72,17 +74,9 @@ export default function Header() {
           <Link to="/" className="brand">USOF</Link>
         </div>
 
-        {/* CENTER: search */}
+        {/* CENTER: command search (замість старого <form className="search">) */}
         <div className={`header__center ${showSearch ? '' : 'is-hidden'}`}>
-          <form className="search" onSubmit={(e) => e.preventDefault()}>
-            <input
-              className="search__input"
-              type="search"
-              placeholder="Search posts, users…"
-              aria-label="Search"
-            />
-            <button className="search__btn" type="submit" aria-label="Search">🔍</button>
-          </form>
+          <CommandSearch placeholder="Jump to… (Ctrl/⌘+K)" />
         </div>
 
         {/* RIGHT: profile / auth buttons */}

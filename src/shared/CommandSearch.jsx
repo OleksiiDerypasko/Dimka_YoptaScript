@@ -9,7 +9,6 @@ function normalize(s) {
 }
 
 function matchScore(cmd, q) {
-  // Дуже простий скорер: +2 якщо в title, +1 за кожне попадання в keywords
   const nq = normalize(q);
   if (!nq) return 0;
 
@@ -21,7 +20,7 @@ function matchScore(cmd, q) {
   return score;
 }
 
-export default function CommandSearch({ placeholder = 'Search commands…' }) {
+export default function CommandSearch({ placeholder = 'Jump to… (Ctrl/⌘+K)' }) {
   const nav = useNavigate();
   const [value, setValue] = useState('');
   const [open, setOpen]   = useState(false);
@@ -30,7 +29,7 @@ export default function CommandSearch({ placeholder = 'Search commands…' }) {
   const inputRef = useRef(null);
   const boxRef   = useRef(null);
 
-  // Фільтрація та сортування результатів
+  // Результати на основі поточного value
   const results = useMemo(() => {
     const q = value.trim();
     if (!q) return [];
@@ -52,17 +51,42 @@ export default function CommandSearch({ placeholder = 'Search commands…' }) {
     return () => document.removeEventListener('mousedown', onDoc);
   }, []);
 
+  // Відкривати меню коли зʼявляються результати
   useEffect(() => {
-    // коли з’явились результати — відкрити список
     setOpen(results.length > 0);
     setActiveIdx(0);
   }, [results.length]);
+
+  // Глобальний хоткей Ctrl/Cmd+K -> фокус інпуту й (за наявності збігів) відкриття меню
+  useEffect(() => {
+    function computeHasResults(q) {
+      const nq = q.trim();
+      if (!nq) return false;
+      for (const cmd of ALL_COMMANDS) {
+        if (matchScore(cmd, nq) > 0) return true;
+      }
+      return false;
+    }
+
+    function onKey(e) {
+      const k = String(e.key || '').toLowerCase();
+      if ((e.ctrlKey || e.metaKey) && k === 'k') {
+        e.preventDefault();
+        const input = inputRef.current;
+        input?.focus();
+        const current = input?.value || '';
+        setOpen(computeHasResults(current));
+      }
+    }
+
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, []); // без залежностей, без ESLint-ігнорів
 
   function runAction(cmd) {
     try { cmd.action(nav); } finally {
       setOpen(false);
       setValue('');
-      // повертаємо фокус, щоб UX був гладкий
       inputRef.current?.blur();
     }
   }
@@ -95,6 +119,9 @@ export default function CommandSearch({ placeholder = 'Search commands…' }) {
         onKeyDown={onKeyDown}
         placeholder={placeholder}
         aria-label="Command search"
+        onFocus={() => {
+          setOpen(value.trim().length > 0 && results.length > 0);
+        }}
       />
       <button
         className="cmd__btn"

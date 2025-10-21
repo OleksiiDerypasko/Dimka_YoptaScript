@@ -80,8 +80,8 @@ export default function PostDetailsPage() {
   // реакції для коментарів: { [commentId]: { likes, dislikes, myReaction, loading } }
   const [cRx, setCRx] = useState({});
 
-  // кеш користувачів (де можливо з /api/users/{id})
-  const [userCache, setUserCache] = useState({});
+  // кеш користувачів (публічний фетч /api/users/{id})
+  const [userCache, setUserCache] = useState({}); // id -> user|null
 
   const postId = useMemo(() => Number(id), [id]);
 
@@ -206,6 +206,30 @@ export default function PostDetailsPage() {
     return () => { abort = true; };
   }, [postId, token]);
 
+  // ===== ПУБЛІЧНЕ підтягування авторів коментарів (без токена) =====
+  useEffect(() => {
+    if (!comments.length) return;
+    const uniqueIds = Array.from(new Set(comments.map((c) => c.authorId)))
+      .filter((id) => Number.isFinite(Number(id)));
+
+    uniqueIds.forEach((uid) => {
+      if (userCache[uid] !== undefined) return; // вже в кеші (навіть null)
+      (async () => {
+        try {
+          const res = await fetch(`/api/users/${uid}`, { headers: { Accept: 'application/json' } });
+          if (res.ok) {
+            const u = await res.json();
+            setUserCache((prev) => ({ ...prev, [uid]: u }));
+          } else {
+            setUserCache((prev) => ({ ...prev, [uid]: null }));
+          }
+        } catch {
+          setUserCache((prev) => ({ ...prev, [uid]: null }));
+        }
+      })();
+    });
+  }, [comments, userCache]);
+
   // ===== Реакції поста =====
   const refreshReactions = useCallback(async () => {
     try {
@@ -226,8 +250,7 @@ export default function PostDetailsPage() {
 
   useEffect(() => { refreshReactions(); }, [refreshReactions]);
 
-  // ===== Початкові лічильники реакцій для коментарів (без N+1 мега-лупа)
-  // Вичитуємо з полів likesCount/dislikesCount, myReaction довантажимо ліниво при взаємодії
+  // ===== Початкові лічильники реакцій для коментарів
   useEffect(() => {
     if (!comments.length) return;
     setCRx((prev) => {
@@ -239,7 +262,7 @@ export default function PostDetailsPage() {
             dislikes: c.dislikesCount ?? 0,
             myReaction: null,
             loading: false,
-            initialized: false, // чи вичитали вже з бекенду myReaction
+            initialized: false,
           };
         }
       }
@@ -324,7 +347,6 @@ export default function PostDetailsPage() {
   // ===== ДІЇ: Лайк/Дизлайк коментаря =====
   async function onToggleCommentReaction(cid, type) {
     if (!token) { alert('Please login to react'); return; }
-    // ліниво підвантажимо мій стан якщо ще ні
     if (!cRx[cid]?.initialized) {
       await ensureCommentMyReaction(cid);
     }
@@ -336,7 +358,6 @@ export default function PostDetailsPage() {
 
     const prev = cRx[cid];
 
-    // повторний клік — зняти
     if (prev?.myReaction === type) {
       setCRx((p) => {
         const cell = p[cid];
@@ -351,7 +372,6 @@ export default function PostDetailsPage() {
       return;
     }
 
-    // не було — ставимо
     if (!prev?.myReaction) {
       setCRx((p) => {
         const cell = p[cid];
@@ -405,21 +425,17 @@ export default function PostDetailsPage() {
       const payloadContent = replyTo ? `@${replyTo.id} ${text}` : text;
       const created = await createComment(postId, payloadContent, token);
 
-      // обчислити parentId/pureContent
       const { parentId, pure } = parseReplyAnchor(created.content || '');
       const createdExt = { ...created, parentId: parentId || null, pureContent: pure };
 
-      // оновити список і дерево
       setComments((prev) => [createdExt, ...prev]);
       setCommentTree((prev) => {
         if (createdExt.parentId && prev.some(x => x.node.id === createdExt.parentId)) {
-          // додати як відповідь
           return prev.map((group) => {
             if (group.node.id !== createdExt.parentId) return group;
             return { ...group, replies: [createdExt, ...group.replies] };
           });
         } else {
-          // новий кореневий
           return [{ node: createdExt, replies: [] }, ...prev];
         }
       });
@@ -447,14 +463,13 @@ export default function PostDetailsPage() {
     if (!canDelete) { alert('You cannot delete this comment'); return; }
     if (!window.confirm('Delete this comment?')) return;
 
-    // оптимістично
     const prevTree = commentTree;
     const prevList = comments;
 
     const filteredList = prevList.filter(x => x.id !== c.id);
     const filteredTree = prevTree
       .map(group => {
-        if (group.node.id === c.id) return null; // видалили кореневий — зносимо весь блок разом із replies
+        if (group.node.id === c.id) return null;
         const replies = group.replies.filter(r => r.id !== c.id);
         return { ...group, replies };
       })
@@ -466,7 +481,6 @@ export default function PostDetailsPage() {
     try {
       await deleteComment(c.id, token);
     } catch (e) {
-      // відкат
       setComments(prevList);
       setCommentTree(prevTree);
       alert(e?.message || 'Failed to delete comment');
