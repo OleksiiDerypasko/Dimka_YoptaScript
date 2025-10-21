@@ -382,3 +382,45 @@
 .am-text { display: grid; line-height: 1.15; }
 .am-title { font-weight: 600; }
 .am-sub { color: var(--text-dim, #9aa6b2); font-size: 12px; margin-top: 2px; }
+
+
+/* --- Admin items look the same family as am-item -- */
+.am-item--admin {
+  border-radius: 12px;
+  background: transparent;
+  transition: background .15s ease, transform .04s ease;
+}
+.am-item--admin .am-ic { opacity: .9; }
+.am-item--admin:hover { background: #0f172a; }
+
+/* Simple placeholder modal styling */
+.admin-modal {
+  display: grid;
+  gap: 12px;
+  padding: 6px;
+}
+.admin-modal__title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+}
+.admin-modal__hint {
+  margin: 0;
+  color: #94a3b8;
+}
+.admin-modal__actions {
+  margin-top: 8px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.admin-modal__btn {
+  appearance: none;
+  border: 1px solid #334155;
+  background: #0b1220;
+  color: #e5e7eb;
+  padding: 8px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+.admin-modal__btn:hover { background: #0f172a; }

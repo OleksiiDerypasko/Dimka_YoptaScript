@@ -1,10 +1,10 @@
-// src/app/layout/Header.jsx
 import React, { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { selectAuthUser, selectIsAuthed } from '../../features/auth/selectors';
 import { logout } from '../../features/auth/actions';
-import CommandSearch from '../../shared/CommandSearch';
+import CategoryManagerModal from '../../admin/CategoryManagerModal';
+import UsersManagerModal from '../../admin/UsersManagerModal';
 import './Header.css';
 
 function getInitials(user) {
@@ -22,6 +22,7 @@ export default function Header() {
 
   const user = useSelector(selectAuthUser);
   const isAuthed = useSelector(selectIsAuthed);
+  const isAdmin = user?.role === 'admin';
 
   const isAuthPage = pathname === '/login' || pathname === '/register';
   const showSearch = !isAuthPage;
@@ -37,10 +38,13 @@ export default function Header() {
   const triggerRef = useRef(null);
   const menuRef = useRef(null);
 
+  // Admin modals
+  const [showCatMgr, setShowCatMgr] = useState(false);
+  const [showUserMgr, setShowUserMgr] = useState(false);
+
   const toggleMenu = () => setOpen(v => !v);
   const closeMenu = () => setOpen(false);
 
-  // close on outside click & Esc
   useEffect(() => {
     if (!open) return;
     function onDocClick(e) {
@@ -49,9 +53,7 @@ export default function Header() {
       if (triggerRef.current?.contains(t)) return;
       setOpen(false);
     }
-    function onKey(e) {
-      if (e.key === 'Escape') setOpen(false);
-    }
+    function onKey(e) { if (e.key === 'Escape') setOpen(false); }
     document.addEventListener('mousedown', onDocClick);
     document.addEventListener('keydown', onKey);
     return () => {
@@ -69,24 +71,25 @@ export default function Header() {
   return (
     <header className="main-header">
       <div className="header__container">
-        {/* LEFT: site name */}
         <div className="header__left">
           <Link to="/" className="brand">USOF</Link>
         </div>
 
-        {/* CENTER: command search (замість старого <form className="search">) */}
         <div className={`header__center ${showSearch ? '' : 'is-hidden'}`}>
-          <CommandSearch placeholder="Jump to… (Ctrl/⌘+K)" />
+          <form className="search" onSubmit={(e) => e.preventDefault()}>
+            <input
+              className="search__input"
+              type="search"
+              placeholder="Search posts, users…"
+              aria-label="Search"
+            />
+            <button className="search__btn" type="submit" aria-label="Search">🔍</button>
+          </form>
         </div>
 
-        {/* RIGHT: profile / auth buttons */}
         <div className="header__right">
           {showProfile && (
-            <div
-              className="profile"
-              ref={triggerRef}
-              onClick={toggleMenu}
-            >
+            <div className="profile" ref={triggerRef} onClick={toggleMenu}>
               <div className="profile__info">
                 <div className="profile__username">{username}</div>
                 <div className="profile__role">{role}</div>
@@ -100,7 +103,6 @@ export default function Header() {
                 )}
               </div>
 
-              {/* Dropdown */}
               {open && (
                 <div
                   className="account-menu"
@@ -133,9 +135,36 @@ export default function Header() {
                     Hello, <strong>{user?.fullName || user?.login || 'guest'}</strong>!
                   </div>
 
-                  {/* ---- Google-like list ---- */}
                   <nav className="am-list" aria-label="Account actions">
-                    {/* Create post — зверху */}
+                    {isAdmin && (
+                      <>
+                        <button
+                          type="button"
+                          className="am-item am-item--admin"
+                          onClick={() => { setShowCatMgr(true); closeMenu(); }}
+                        >
+                          <span className="am-ic" aria-hidden>🏷️</span>
+                          <span className="am-text">
+                            <span className="am-title">Category manager</span>
+                            <span className="am-sub">Create, edit, delete categories</span>
+                          </span>
+                        </button>
+                        <button
+                          type="button"
+                          className="am-item am-item--admin"
+                          onClick={() => { setShowUserMgr(true); closeMenu(); }}
+                        >
+                          <span className="am-ic" aria-hidden>👥</span>
+                          <span className="am-text">
+                            <span className="am-title">Users manager</span>
+                            <span className="am-sub">View and manage users</span>
+                          </span>
+                        </button>
+
+                        <div className="am-divider" role="separator" aria-hidden />
+                      </>
+                    )}
+
                     <button
                       type="button"
                       className="am-item am-item--primary"
@@ -181,25 +210,18 @@ export default function Header() {
             </div>
           )}
 
-          {/* КНОПКИ LOGIN / REGISTER для гостей */}
-          {showAuthButtons && (
+          {!showProfile && showAuthButtons && (
             <div className="auth-buttons">
-              <button
-                className="auth-btn"
-                onClick={() => navigate('/login')}
-              >
-                Login
-              </button>
-              <button
-                className="auth-btn auth-btn--primary"
-                onClick={() => navigate('/register')}
-              >
-                Register
-              </button>
+              <button className="auth-btn" onClick={() => navigate('/login')}>Login</button>
+              <button className="auth-btn auth-btn--primary" onClick={() => navigate('/register')}>Register</button>
             </div>
           )}
         </div>
       </div>
+
+      {/* Admin модалки */}
+      <CategoryManagerModal open={showCatMgr} onClose={() => setShowCatMgr(false)} />
+      <UsersManagerModal open={showUserMgr} onClose={() => setShowUserMgr(false)} />
     </header>
   );
 }

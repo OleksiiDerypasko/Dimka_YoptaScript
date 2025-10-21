@@ -1,0 +1,157 @@
+/* =======================
+   CATEGORY MANAGER MODAL
+   ======================= */
+
+.cm {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 6px;
+}
+
+/* --- Toolbar (пошук + створення) --- */
+.cm__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.cm__search {
+  flex: 1;
+  min-width: 180px;
+  height: 38px;
+  border-radius: 10px;
+  border: 1px solid #334155;
+  background: #0b1220;
+  color: #e5e7eb;
+  padding: 0 12px;
+  font-size: 14px;
+  transition: border-color 0.2s;
+}
+.cm__search:focus {
+  outline: none;
+  border-color: #6366f1;
+}
+
+.cm__create {
+  display: flex;
+  gap: 8px;
+}
+
+.cm__input {
+  height: 38px;
+  border-radius: 10px;
+  border: 1px solid #334155;
+  background: #0b1220;
+  color: #e5e7eb;
+  padding: 0 10px;
+  font-size: 14px;
+}
+.cm__input:focus {
+  outline: none;
+  border-color: #6366f1;
+}
+
+.cm__btn {
+  height: 38px;
+  padding: 0 14px;
+  border-radius: 10px;
+  border: 1px solid #334155;
+  background: #0b1220;
+  color: #e5e7eb;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.05s;
+}
+.cm__btn:hover {
+  background: #0f172a;
+}
+.cm__btn:active {
+  transform: scale(0.97);
+}
+
+.cm__btn--primary {
+  border-color: #4f46e5;
+  background: #312e81;
+  color: #c7d2fe;
+}
+.cm__btn--primary:hover {
+  background: #3730a3;
+}
+
+.cm__btn--danger {
+  border-color: #7f1d1d;
+  color: #fecaca;
+}
+.cm__btn--danger:hover {
+  background: #1b0f0f;
+}
+
+/* --- State / Loading / Empty --- */
+.cm__state {
+  text-align: center;
+  color: #94a3b8;
+  padding: 10px 0;
+}
+.cm__state--err {
+  color: #ef4444;
+}
+.cm__empty {
+  text-align: center;
+  color: #64748b;
+  padding: 12px 0;
+}
+
+/* --- Category list --- */
+.cm__list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 60vh;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.cm__row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid #334155;
+  border-radius: 12px;
+  background: #0b1220;
+  transition: background 0.15s;
+}
+.cm__row:hover {
+  background: #0f172a;
+}
+
+.cm__title {
+  color: #e5e7eb;
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.cm__actions {
+  display: flex;
+  gap: 8px;
+}
+
+/* --- Inputs inside edit mode --- */
+.cm__row input.cm__input {
+  width: 100%;
+}
+
+/* --- Scrollbar adjustments for long lists --- */
+.cm__list::-webkit-scrollbar {
+  width: 8px;
+}
+.cm__list::-webkit-scrollbar-thumb {
+  background: #1e293b;
+  border-radius: 6px;
+}
+.cm__list::-webkit-scrollbar-thumb:hover {
+  background: #334155;
+}
