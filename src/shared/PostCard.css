@@ -134,4 +134,26 @@
   background: #1e293b;
 }
 
+/* додайте в кінець src/shared/PostCard.css */
+
+.pc__foot {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 12px;
+  align-items: center;
+}
+
+.pc__delete {
+  justify-self: end;
+  height: 34px;
+  padding: 0 12px;
+  border-radius: 12px;
+  border: 1px solid #7f1d1d;
+  background: #1f2937;
+  color: #fecaca;
+  cursor: pointer;
+}
+.pc__delete:hover { background: #111827; }
+.pc__delete:disabled { opacity: .6; cursor: default; }
+
 

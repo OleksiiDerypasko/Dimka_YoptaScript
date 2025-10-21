@@ -1,26 +1,24 @@
+// src/shared/PostCard.jsx
 import React, { useEffect, useState, useCallback } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
-import { useSelector } from 'react-redux';
-import { selectAuthUser } from '../features/auth/selectors';
-
+import { useNavigate } from 'react-router-dom';
 import './PostCard.css';
-import useCommentCount from '../features/posts/useCommentCount';
+import { adminDeletePostApi, deletePostApi } from '../features/posts/api';
+import { useSelector } from 'react-redux';
+import { selectAuthUser, selectAuthToken } from '../features/auth/selectors';
 
 /**
- * Очікуваний post:
- * {
- *   id, title, content, createdAt,
- *   authorId, authorLogin, authorFullName,
- *   likesCount, dislikesCount,
- *   // optional: categories: [{id,title}, ...]
- * }
+ * props:
+ *   post: Post
+ *   variant: 'card' | 'line'
+ *   showDelete?: boolean         // показати кнопку видалення
+ *   adminDelete?: boolean        // якщо true — юзати admin API
+ *   onDeleted?: (postId) => void // колбек після успіху
  */
-export default function PostCard({ post, variant = 'card' }) {
+export default function PostCard({ post, variant = 'card', showDelete = false, adminDelete = false, onDeleted }) {
   const {
     id,
     title,
     content,
-    authorId,
     authorLogin,
     authorFullName,
     createdAt,
@@ -29,12 +27,12 @@ export default function PostCard({ post, variant = 'card' }) {
   } = post || {};
 
   const navigate = useNavigate();
-  const { pathname } = useLocation();
-  const me = useSelector(selectAuthUser);
+  const me    = useSelector(selectAuthUser);
+  const token = useSelector(selectAuthToken);
 
-  // Категорії: беремо з post.categories або довантажуємо по /api/posts/{id}/categories
   const [cats, setCats] = useState(post?.categories || []);
   const [catsLoading, setCatsLoading] = useState(false);
+  const [busyDel, setBusyDel] = useState(false);
 
   useEffect(() => {
     let abort = false;
@@ -68,11 +66,32 @@ export default function PostCard({ post, variant = 'card' }) {
     }
   };
 
-  // Ледачий лічильник коментарів
-  const { ref: ccRef, count: cc, loading: ccLoading } = useCommentCount(id, true);
+  async function handleDelete(e) {
+    e.stopPropagation();
+    if (!id) return;
+    if (!token) { alert('Sign in first'); return; }
+    if (!window.confirm('Delete this post permanently?')) return;
 
-  // Показувати кнопку Edit тільки у вкладці профілю та лише власнику
-  const showEdit = pathname.startsWith('/profile') && me?.id && authorId === me.id;
+    setBusyDel(true);
+    try {
+      if (adminDelete) {
+        await adminDeletePostApi(id, token);
+      } else {
+        // додатково: підстрахуємось – видаляти дозволимо тільки власнику
+        if (me?.id !== post.authorId) {
+          alert('You can delete only your own post');
+          setBusyDel(false);
+          return;
+        }
+        await deletePostApi(id, token);
+      }
+      onDeleted?.(id);
+    } catch (e2) {
+      alert(e2?.message || 'Failed to delete post');
+    } finally {
+      setBusyDel(false);
+    }
+  }
 
   return (
     <article
@@ -88,23 +107,8 @@ export default function PostCard({ post, variant = 'card' }) {
         <div className="pc__author">
           {authorFullName || authorLogin || 'unknown'}
         </div>
-
-        {showEdit && (
-          <button
-            type="button"
-            className="pc__edit"
-            title="Edit post"
-            onClick={(e) => {
-              e.stopPropagation();
-              navigate(`/posts/${id}/edit`);
-            }}
-          >
-            ✏️ Edit
-          </button>
-        )}
       </header>
 
-      {/* Категорії (чипси) */}
       <div className="pc__cats">
         {catsLoading && <span className="pc__cat pc__cat--loading">Loading…</span>}
         {!catsLoading && cats?.length > 0 && cats.map(c => (
@@ -115,10 +119,7 @@ export default function PostCard({ post, variant = 'card' }) {
         )}
       </div>
 
-      {/* Короткий текст */}
-      <div className="pc__preview">
-        {content}
-      </div>
+      <div className="pc__preview">{content}</div>
 
       <footer className="pc__foot">
         <time className="pc__date">
@@ -131,21 +132,24 @@ export default function PostCard({ post, variant = 'card' }) {
             <span className="pc-badge__label">likes</span>
             <span className="pc-badge__val">{likesCount}</span>
           </span>
-
           <span className="pc-badge" title="Dislikes">
             <span className="pc-badge__icon" aria-hidden>👎</span>
             <span className="pc-badge__label">dislikes</span>
             <span className="pc-badge__val">{dislikesCount}</span>
           </span>
-
-          <span className="pc-badge" title="Comments">
-            <span className="pc-badge__icon" aria-hidden>💬</span>
-            <span className="pc-badge__label">comments</span>
-            <span ref={ccRef} className="pc-badge__val">
-              {ccLoading || cc == null ? '…' : cc}
-            </span>
-          </span>
         </div>
+
+        {showDelete && (
+          <button
+            type="button"
+            className="pc__delete"
+            onClick={handleDelete}
+            disabled={busyDel}
+            title={adminDelete ? 'Admin: delete post' : 'Delete my post'}
+          >
+            {busyDel ? 'Deleting…' : 'Delete'}
+          </button>
+        )}
       </footer>
     </article>
   );

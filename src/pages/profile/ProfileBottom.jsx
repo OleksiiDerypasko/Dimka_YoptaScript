@@ -23,9 +23,10 @@ async function fetchPostsRaw(q, { token } = {}) {
   const qs = buildQuery(q);
   const res = await fetch(`/api/posts${qs ? `?${qs}` : ''}`, {
     headers: {
-      'Accept': 'application/json',
+      Accept: 'application/json',
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
+    cache: 'no-store',
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
@@ -102,6 +103,7 @@ export default function ProfileBottom({ userId, userLogin }) {
       if (checked.length) base.categories = checked;
 
       if (activeTab === 'fav') {
+        // бек-пагінація для обраного (потрібен token)
         const data = await fetchPostsRaw({ ...base, favorite: true }, { token });
         setItems(data?.items || []);
         setTotal(data?.total ?? 0);
@@ -109,6 +111,7 @@ export default function ProfileBottom({ userId, userLogin }) {
         if (data?.limit) setLimit(data.limit);
         setAllMine([]);
       } else {
+        // мої пости — фільтруємо на клієнті (надійно для «власних постів»)
         const bigLimit = Math.max(limit, 100);
         const data = await fetchPostsRaw({ ...base, page: 1, limit: bigLimit });
         const mine = (data?.items || []).filter(
@@ -130,10 +133,10 @@ export default function ProfileBottom({ userId, userLogin }) {
     }
   }
 
-  // перше завантаження коли є дані користувача
+  // первинне завантаження коли є дані користувача
   useEffect(() => {
     if (userId || userLogin) applyAtPage(1);
-  }, [userId, userLogin]);
+  }, [userId, userLogin]); // no eslint rule usage
 
   // перевантаження при зміні таба — з 1 сторінки
   useEffect(() => {
@@ -141,7 +144,7 @@ export default function ProfileBottom({ userId, userLogin }) {
       setPage(1);
       applyAtPage(1);
     }
-  }, [activeTab, userId, userLogin]);
+  }, [activeTab, userId, userLogin]); // no eslint rule usage
 
   function handleApply() {
     setPage(1);
@@ -155,6 +158,12 @@ export default function ProfileBottom({ userId, userLogin }) {
       setPage(newPage); // локальна пагінація
       setItems(paginateLocal(allMine, newPage, limit));
     }
+  }
+
+  // Використовується PostCard після видалення поста власником
+  function refetchMyPosts() {
+    // Оновимо поточну сторінку з чинними фільтрами
+    applyAtPage(page);
   }
 
   return (
@@ -251,7 +260,13 @@ export default function ProfileBottom({ userId, userLogin }) {
               <div className="pb-col">
                 {items.map((p) => (
                   <div key={p.id} className="pb-item">
-                    <PostCard post={p} variant="line" />
+                    <PostCard
+                      post={p}
+                      variant="line"
+                      showDelete={activeTab === 'my'} // видаляти можна лише у «My posts»
+                      adminDelete={false}             // користувацький API
+                      onDeleted={refetchMyPosts}       // перезавантажити список після видалення
+                    />
                   </div>
                 ))}
               </div>

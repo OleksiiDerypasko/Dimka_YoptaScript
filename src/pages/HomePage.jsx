@@ -12,16 +12,18 @@ import {
 import PostCard from '../shared/PostCard';
 import FiltersBar from './FiltersBar';
 import Pagination from '../shared/Pagination';
+import { selectAuthUser } from '../features/auth/selectors';
 
 export default function HomePage() {
   const dispatch = useDispatch();
-  const items  = useSelector(selectPostsItems);
+  const me = useSelector(selectAuthUser);
+
+  const items   = useSelector(selectPostsItems);
   const loading = useSelector(selectPostsLoading);
   const error   = useSelector(selectPostsError);
   const page    = useSelector(selectPostsPage);
   const total   = useSelector(selectPostsTotal);
 
-  // застосовані фільтри/параметри
   const [applied, setApplied] = useState({
     page: 1,
     limit: 10,
@@ -30,13 +32,12 @@ export default function HomePage() {
     status: 'active',
   });
 
-  // первинне завантаження (один раз)
+  // первинне завантаження
   useEffect(() => {
     dispatch(fetchPosts(applied));
-  }, []); // один раз при mount
+  }, []); // виконується один раз
 
-  // натиск "Apply" у панелі
-  function handleApply(next) {
+  const handleApply = (next) => {
     const params = {
       page: 1,
       status: 'active',
@@ -45,15 +46,18 @@ export default function HomePage() {
       limit: next.limit,
     };
     if (next.categories?.length) params.categories = next.categories;
+    if (next.match) params.match = next.match;
     setApplied(params);
     dispatch(fetchPosts(params));
-  }
+  };
 
-  function handlePageChange(newPage) {
+  const handlePageChange = (newPage) => {
     const params = { ...applied, page: newPage };
     setApplied(params);
     dispatch(fetchPosts(params));
-  }
+  };
+
+  const isAdmin = me?.role === 'admin';
 
   return (
     <div className="feed">
@@ -78,9 +82,14 @@ export default function HomePage() {
       {!loading && !error && items.length > 0 && (
         <>
           <div className="feed__list">
-            {items.map(p => (
+            {items.map((p) => (
               <div key={p.id} className="feed__item">
-                <PostCard post={p} />
+                <PostCard
+                  post={p}
+                  showDelete={isAdmin}
+                  adminDelete={isAdmin}
+                  onDeleted={() => dispatch(fetchPosts(applied))}
+                />
               </div>
             ))}
           </div>
