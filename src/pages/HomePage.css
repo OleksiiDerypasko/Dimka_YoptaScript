@@ -1,28 +1,175 @@
-.feed {
-  padding: 20px 12px 36px;
+/* ===================== HomePage.css (tokens-based) ===================== */
+@import '../shared/styles/colors.css';
+
+/* Layout */
+.home {
+  padding: 20px 16px;
+  display: flex;
+  justify-content: center;
 }
 
-/* панель фільтрів */
-.feed__filters {
-  margin: 0 auto 16px;
-  max-width: 1100px;
+.home__panel {
+  width: 100%;
+  max-width: 1200px;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  color: var(--text);
+  box-shadow: var(--shadow-1);
 }
 
-/* список – одна колонка, ширина = ширині фільтрів */
-.feed__list {
-  max-width: 1100px;
-  margin: 0 auto;
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 14px;
+/* ───────── Filters bar ───────── */
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 14px;
+  margin-bottom: 16px;
+  padding: 10px 12px;
+  background: var(--bg-elev-1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
 }
 
-.feed__item {}
-
-/* стани */
-.feed__state {
-  max-width: 1100px;
-  margin: 24px auto;
-  color: #cbd5e1;
+/* Categories dropdown */
+.filters__dd {
+  position: relative;
 }
-.feed__state--err { color: #ffb4b4; }
+
+.filters__dd-btn {
+  list-style: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--bg-main);
+  color: var(--text);
+  user-select: none;
+  white-space: nowrap;
+  transition: border-color .15s ease, background .15s ease, box-shadow .15s ease;
+}
+
+.filters__dd[open] .filters__dd-btn {
+  background: var(--card-bg);
+  border-color: color-mix(in oklab, var(--accent) 40%, var(--border));
+  box-shadow: 0 0 0 3px rgba(var(--brand-600-rgb) / .15);
+}
+
+.filters__dd-btn::-webkit-details-marker { display: none; }
+
+.filters__dd-menu {
+  position: absolute;
+  z-index: 30;
+  top: calc(100% + 8px);
+  left: 0;
+  min-width: 240px;
+  max-height: 300px;
+  overflow: auto;
+  padding: 8px;
+  background: var(--bg-main);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: var(--shadow-2);
+}
+
+.filters__dd-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  color: var(--text);
+  border-radius: 8px;
+  font-size: 14px;
+  transition: background .15s ease, color .15s ease;
+}
+
+.filters__dd-item:hover { background: color-mix(in oklab, var(--bg-elev-1) 70%, black); }
+.filters__dd-empty { padding: 8px; color: var(--text-muted); font-size: 13px; }
+
+/* підсвічуємо підпис категорії, коли чекбокс активний */
+.filters__dd-item input:checked + span {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+/* Common filter controls */
+.filters__group { display: grid; gap: 6px; }
+
+.filters__label {
+  font-size: 12px;
+  color: var(--text-subtle);
+  padding-left: 4px;
+}
+
+.filters__select,
+.filters__number {
+  height: 36px;
+  padding: 0 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--bg-main);
+  color: var(--text);
+  min-width: 140px;
+  transition: border-color .15s ease, box-shadow .15s ease, background .15s ease;
+}
+
+.filters__select:focus,
+.filters__number:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(var(--brand-600-rgb) / .2);
+}
+
+.filters__number { width: 96px; min-width: 96px; text-align: center; }
+
+/* Apply button */
+.filters__actions { margin-left: 4px; }
+
+.filters__apply {
+  height: 36px;
+  padding: 0 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--accent);
+  background: var(--button-bg);
+  color: var(--button-text);
+  font-weight: 700;
+  cursor: pointer;
+  transition: filter .12s ease, transform .04s ease, box-shadow .15s ease;
+}
+
+.filters__apply:hover {
+  filter: brightness(1.05);
+  box-shadow: 0 0 0 3px rgba(var(--brand-600-rgb) / .18);
+}
+
+.filters__apply:active { transform: translateY(1px); }
+.filters__apply:disabled { opacity: .55; cursor: default; box-shadow: none; }
+
+/* Responsive */
+@media (max-width: 780px) {
+  .filters { gap: 10px 12px; }
+  .filters__select { min-width: 120px; }
+}
+
+/* ───────── List / states ───────── */
+.home__list { min-height: 120px; }
+.home__state { padding: 24px 8px; color: var(--text-muted); }
+.home__state--err { color: var(--danger); }
+
+.home__col { display: grid; gap: 10px; }
+.home__item {}
+
+/* Inactive posts get dimmed */
+.home__item--inactive {
+  opacity: .6;
+  filter: grayscale(30%);
+  transition: opacity .2s ease, filter .2s ease;
+}
+.home__item--inactive:hover {
+  opacity: .8;
+  filter: grayscale(10%);
+}

@@ -1,29 +1,19 @@
-/* ===== Theme tokens ===== */
+/* =========================================================
+   PostDetailsPage.css - GREEN THEME (via shared tokens)
+   ========================================================= */
+
+/* ===== Theme tokens (ОНОВЛЕННЯ) ===== */
 :root {
-  --bg: #0f1115;
-  --bg-elev: #151922;
-  --card: #161b26;
-  --card-border: #242b39;
-  --text: #e7ecf3;
-  --text-dim: #9aa6b2;
-  --accent: #7aa2ff;
-  --accent-weak: #1d2740;
-  --ok: #22c55e;
+  /* Сині кольори замінено на Зелені акценти */
+  --accent: var(--brand-600);
+  --accent-hover: var(--brand-500); /* Додано для hover, хоча не використовувався напряму */
+  --accent-weak: var(--brand-700); /* Використовуємо більш темний бренд як "слабкий" акцент */
+
+  /* Ці змінні вже встановлені в colors.css, але тут ми їх ігноруємо,
+     використовуючи замість них Brand Green: */
+  --ok: var(--brand-500); /* var(--ok) тепер зелений */
   --warn: #f59e0b;
-  --err: #ef4444;
-
-  --chip-bg: #0f2a22;
-  --chip-border: #1b4a3c;
-  --chip-text: #9fe7c3;
-
-  --muted: #222836;
-  --muted-2: #1a202c;
-
-  --radius-lg: 16px;
-  --radius-md: 12px;
-  --radius-sm: 10px;
-
-  --shadow: 0 8px 28px rgba(0,0,0,.35);
+  --err: var(--danger-500); /* var(--err) тепер червоний */
 }
 
 /* ===== Page ===== */
@@ -40,8 +30,8 @@
   border: 1px dashed var(--card-border);
   border-radius: var(--radius-lg);
   text-align: center;
-  color: var(--text-dim);
-  background: var(--bg-elev);
+  color: var(--text-muted); /* ЗМІНЕНО з --text-dim */
+  background: var(--bg-elev-1); /* Змінено на bg-elev-1 зі словника */
 }
 .post-state--err { color: var(--err); }
 
@@ -50,28 +40,28 @@
   border: 1px solid var(--card-border);
   border-radius: var(--radius-lg);
   padding: 16px;
-  background: var(--card);
+  background: var(--card-bg); /* Змінено на card-bg зі словника */
   margin-bottom: 20px;
-  box-shadow: var(--shadow);
+  box-shadow: var(--shadow-1); /* Змінено на shadow-1 зі словника */
 }
 
 .post-head { margin-bottom: 12px; }
 .post-title { margin: 0 0 6px; font-size: 28px; color: var(--text); }
-.post-meta { color: var(--text-dim); font-size: 14px; display: flex; align-items: center; gap: 8px; }
+.post-meta { color: var(--text-muted); /* Змінено на text-muted */ font-size: 14px; display: flex; align-items: center; gap: 8px; }
 .post-author { font-weight: 600; color: var(--text); }
 .post-dot { opacity: .5; }
 
-/* ===== Categories ===== */
+/* ===== Categories (Вже використовує зелені токени з colors.css) ===== */
 .post-cats { margin: 10px 0 16px; display: flex; flex-wrap: wrap; gap: 8px; }
 .post-cat {
   font-size: 12px;
-  color: var(--chip-text);
-  background: var(--chip-bg);
-  border: 1px solid var(--chip-border);
+  color: var(--text); /* ЗМІНЕНО з --accent-contrast */
+  background: var(--brand-700); /* Насичений зелений фон */
+  border: 1px solid var(--brand-800); /* Темніша зелена рамка */
   padding: 4px 8px;
   border-radius: 999px;
 }
-.post-cat--loading { color: var(--text-dim); background: var(--muted); border-color: var(--card-border); }
+.post-cat--loading { color: var(--text-muted); /* ЗМІНЕНО з --text-dim */ background: var(--bg-elev-1); border-color: var(--card-border); }
 
 /* ===== Content ===== */
 .post-body { white-space: pre-wrap; line-height: 1.7; color: var(--text); }
@@ -86,22 +76,25 @@
   gap: 6px;
   border: 1px solid var(--card-border);
   border-radius: var(--radius-sm);
-  padding: 8px 12px;
-  background: var(--bg-elev);
+  background: var(--bg-elev-1); /* Змінено на bg-elev-1 */
   color: var(--text);
+  padding: 8px 12px;
   cursor: pointer;
   transition: transform .06s ease, box-shadow .12s ease, background .12s ease, border-color .12s ease, opacity .12s ease;
 }
 .pa-btn:hover:not(:disabled) {
   transform: translateY(-1px);
-  box-shadow: 0 2px 10px rgba(0,0,0,.35);
-  border-color: var(--accent-weak);
+  box-shadow: var(--shadow-1);
+  /* Змінено: border-color на акцентний (зелений) */
+  border-color: var(--accent);
 }
 .pa-btn:disabled { opacity: .6; cursor: not-allowed; }
 
 .pa-btn--rxn.is-active {
+  /* Змінено: колір на акцентний (зелений) */
   border-color: var(--accent);
-  background: #19274a;
+  /* Змінено: фон на прозорий зелений */
+  background: rgba(var(--brand-600-rgb) / 0.15);
 }
 
 /* ===== Comments ===== */
@@ -122,59 +115,69 @@
   padding: 10px 12px;
   line-height: 1.5;
   outline: none;
-  background: var(--bg-elev);
+  background: var(--bg-elev-1); /* Змінено на bg-elev-1 */
   color: var(--text);
 }
-.comment-input::placeholder { color: var(--text-dim); }
-.comment-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(122,162,255,.18); }
+.comment-input::placeholder { color: var(--text-muted); } /* Змінено на text-muted */
+.comment-input:focus {
+  /* Змінено: рамка на акцентний (зелений) */
+  border-color: var(--accent);
+  /* Змінено: тінь на прозорий зелений */
+  box-shadow: 0 0 0 3px rgba(var(--brand-600-rgb) / 0.18);
+}
 
 .comment-actions { display: flex; justify-content: flex-end; }
 .comment-submit {
   border: 1px solid var(--card-border);
   border-radius: var(--radius-sm);
   padding: 8px 14px;
-  background: var(--bg-elev);
+  background: var(--bg-elev-1); /* Змінено на bg-elev-1 */
   color: var(--text);
   cursor: pointer;
 }
-.comment-submit:hover { border-color: var(--accent-weak); }
+.comment-submit:hover {
+  /* Змінено: border-color на акцентний (зелений) */
+  border-color: var(--accent);
+}
 .comment-submit:disabled { opacity: .6; cursor: not-allowed; }
 
 .comments__list { display: grid; gap: 12px; }
 .comment-empty {
   padding: 16px;
   text-align: center;
-  color: var(--text-dim);
+  color: var(--text-muted); /* Змінено на text-muted */
   border: 1px dashed var(--card-border);
   border-radius: var(--radius-md);
-  background: var(--bg-elev);
+  background: var(--bg-elev-1); /* Змінено на bg-elev-1 */
 }
 .comment-item {
   border: 1px solid var(--card-border);
   border-radius: var(--radius-md);
   padding: 12px;
-  background: var(--bg-elev);
+  background: var(--bg-elev-1); /* Змінено на bg-elev-1 */
 }
-.comment-meta { color: var(--text-dim); font-size: 13px; display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+.comment-meta { color: var(--text-muted); /* Змінено на text-muted */ font-size: 13px; display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
 .comment-author { font-weight: 600; color: var(--text); }
 .comment-content { white-space: pre-wrap; line-height: 1.55; color: var(--text); }
 
 .pa-btn.is-fav {
+  /* Змінено: рамка на зелений ok */
   border-color: var(--ok);
-  background: rgba(34,197,94,.12);
+  /* Змінено: фон на прозорий зелений */
+  background: rgba(var(--brand-600-rgb) / 0.12);
 }
 .comment-delete {
   padding: 2px 8px;
   border: 1px solid var(--card-border);
   border-radius: 8px;
-  background: var(--bg-elev);
-  color: var(--text-dim);
+  background: var(--bg-elev-1); /* Змінено на bg-elev-1 */
+  color: var(--text-muted); /* Змінено на text-muted */
   cursor: pointer;
 }
 .comment-delete:hover:not(:disabled) {
   color: var(--err);
   border-color: var(--err);
-  background: rgba(239,68,68,.08);
+  background: rgba(var(--danger-500-rgb) / 0.08); /* Змінено на прозорий червоний */
 }
 .comment-delete:disabled { opacity: .6; cursor: not-allowed; }
 
@@ -183,20 +186,20 @@
 .replies-toggle {
   margin: 4px 0 8px;
   border: 1px solid var(--card-border);
-  background: var(--bg-elev);
-  color: var(--text-dim);
+  background: var(--bg-elev-1); /* Змінено на bg-elev-1 */
+  color: var(--text-muted); /* Змінено на text-muted */
   border-radius: 8px;
   padding: 4px 10px;
   cursor: pointer;
 }
-.replies-toggle:hover { color: var(--text); border-color: var(--accent-weak); }
+.replies-toggle:hover { color: var(--text); border-color: var(--accent); } /* Змінено на акцент */
 
 .replies-list { display: grid; gap: 10px; }
 .reply-item {
   border: 1px solid var(--card-border);
   border-radius: 10px;
   padding: 10px;
-  background: var(--bg-elev);
+  background: var(--bg-elev-1); /* Змінено на bg-elev-1 */
 }
 
 /* small actions on comments */
@@ -204,13 +207,15 @@
   border: 1px solid var(--card-border);
   border-radius: 8px;
   padding: 2px 8px;
-  background: var(--bg-elev);
-  color: var(--text-dim);
+  background: var(--bg-elev-1); /* Змінено на bg-elev-1 */
+  color: var(--text-muted); /* Змінено на text-muted */
   cursor: pointer;
 }
 .c-rxn.is-active {
+  /* Змінено: рамка на акцентний (зелений) */
   border-color: var(--accent);
-  background: #19274a;
+  /* Змінено: фон на прозорий зелений */
+  background: rgba(var(--brand-600-rgb) / 0.15);
   color: var(--text);
 }
 .c-rxn:disabled { opacity: .6; cursor: not-allowed; }
@@ -219,18 +224,20 @@
   border: 1px solid var(--card-border);
   border-radius: 8px;
   padding: 2px 8px;
-  background: var(--bg-elev);
-  color: var(--text-dim);
+  background: var(--bg-elev-1); /* Змінено на bg-elev-1 */
+  color: var(--text-muted); /* Змінено на text-muted */
   cursor: pointer;
 }
-.comment-action:hover { border-color: var(--accent-weak); color: var(--text); }
+.comment-action:hover { border-color: var(--accent); color: var(--text); } /* Змінено на акцент */
 
 .reply-banner {
   display: flex;
   align-items: center;
   gap: 8px;
-  background: rgba(122,162,255,.1);
-  border: 1px solid var(--accent-weak);
+  /* Змінено: фон на прозорий зелений */
+  background: rgba(var(--brand-600-rgb) / 0.1);
+  /* Змінено: рамка на акцентний (зелений) */
+  border: 1px solid var(--accent);
   border-radius: 8px;
   padding: 6px 10px;
   margin-bottom: 6px;
@@ -240,28 +247,33 @@
   border: 1px solid var(--card-border);
   border-radius: 6px;
   padding: 2px 8px;
-  background: var(--bg-elev);
-  color: var(--text-dim);
+  background: var(--bg-elev-1); /* Змінено на bg-elev-1 */
+  color: var(--text-muted); /* Змінено на text-muted */
   cursor: pointer;
 }
-.reply-cancel:hover { color: var(--err); border-color: var(--err); }
+.reply-cancel:hover {
+  color: var(--err);
+  border-color: var(--err);
+}
 
 .pa-btn.is-fav {
+  /* Змінено: рамка на зелений ok */
   border-color: var(--ok);
-  background: rgba(34,197,94,.12);
+  /* Змінено: фон на прозорий зелений */
+  background: rgba(var(--brand-600-rgb) / 0.12);
 }
 
 .comment-delete {
   padding: 2px 8px;
   border: 1px solid var(--card-border);
   border-radius: 8px;
-  background: var(--bg-elev);
-  color: var(--text-dim);
+  background: var(--bg-elev-1); /* Змінено на bg-elev-1 */
+  color: var(--text-muted); /* Змінено на text-muted */
   cursor: pointer;
 }
 .comment-delete:hover:not(:disabled) {
   color: var(--err);
   border-color: var(--err);
-  background: rgba(239,68,68,.08);
+  background: rgba(var(--danger-500-rgb) / 0.08);
 }
 .comment-delete:disabled { opacity: .6; cursor: not-allowed; }

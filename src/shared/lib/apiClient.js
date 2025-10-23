@@ -1,25 +1,21 @@
-// Unified API client with backward compatibility for both call styles.
-//
-// Supported exports:
-// - apiGet(path, params)
-// - apiSend(path, method, body, extraHeaders)              // legacy style used in auth
-// - apiPost(path, body)                                     // convenience
-// - apiPatch(path, body)                                    // convenience (JSON)
-// - apiDelete(path)                                         // convenience
-// - apiUpload(url, formDataOrOptions, tokenIgnored)         // accepts FormData OR {file, fileField, fields}; method PATCH
-//
-// All functions automatically attach Bearer token from services/storage.
-
+// src/shared/lib/apiClient.js
 import { getToken } from '../../services/storage';
 
 const BASE_URL = process.env.REACT_APP_API_URL || '';
 
 function buildUrl(path, params) {
   const url = new URL(path, BASE_URL || window.location.origin);
-  if (params) Object.entries(params).forEach(([k, v]) => {
-    if (v !== undefined && v !== null) url.searchParams.set(k, v);
-  });
+  if (params) {
+    Object.entries(params).forEach(([k, v]) => {
+      if (v !== undefined && v !== null) url.searchParams.set(k, v);
+    });
+  }
   return url.toString();
+}
+
+function authHeader() {
+  const t = getToken();
+  return t ? { Authorization: `Bearer ${t}` } : {};
 }
 
 async function handle(res) {
@@ -27,75 +23,54 @@ async function handle(res) {
   let data = null;
   try { data = text ? JSON.parse(text) : null; } catch { data = text || null; }
   if (!res.ok) {
-    const err = (data && typeof data === 'object') ? data : { error: res.statusText, status: res.status, data };
+    const msg = (data && (data.error || data.message)) || res.statusText || 'Request failed';
+    const err = new Error(msg);
+    err.status = res.status;
+    err.data = data;
     throw err;
   }
   return data;
 }
 
-function authHeader() {
-  const token = getToken();
-  return token ? { Authorization: `Bearer ${token}` } : {};
-}
-
-export async function apiGet(path, params) {
-  const res = await fetch(buildUrl(path, params), {
-    method: 'GET',
-    headers: { ...authHeader() },
-  });
-  return handle(res);
-}
-
-// ---- Legacy: apiSend(path, method, body, extraHeaders) ----
-export async function apiSend(path, method, body, extraHeaders = {}) {
-  const headers = { 'Content-Type': 'application/json', ...extraHeaders, ...authHeader() };
+// -------- Legacy universal sender (used by auth) --------
+export async function apiSend(path, method = 'GET', body, extraHeaders = {}) {
+  const isJson = body && !(body instanceof FormData);
   const res = await fetch(buildUrl(path), {
     method,
-    headers,
-    body: body != null ? JSON.stringify(body) : undefined,
+    headers: {
+      Accept: 'application/json',
+      ...(isJson ? { 'Content-Type': 'application/json' } : {}),
+      ...authHeader(),
+      ...extraHeaders,
+    },
+    body: body ? (isJson ? JSON.stringify(body) : body) : undefined,
   });
   return handle(res);
 }
 
-// ---- Convenience wrappers (compatible with existing call sites) ----
-export async function apiPost(path, body /*, tokenIgnored */) {
-  return apiSend(path, 'POST', body);
-}
+// -------- Convenience wrappers --------
+export const apiGet = (path, params) =>
+  fetch(buildUrl(path, params), { headers: { Accept: 'application/json', ...authHeader() } }).then(handle);
 
-export async function apiPatch(path, body /*, tokenIgnored */) {
-  return apiSend(path, 'PATCH', body);
-}
+export const apiPost  = (path, body) => apiSend(path, 'POST', body);
+export const apiPatch = (path, body) => apiSend(path, 'PATCH', body);
+export const apiDelete = (path) => apiSend(path, 'DELETE');
 
-export async function apiDelete(path /*, tokenIgnored */) {
-  const res = await fetch(buildUrl(path), {
-    method: 'DELETE',
-    headers: { 'Accept': 'application/json', ...authHeader() },
-  });
-  return handle(res);
-}
-
-// ---- Upload: accepts either FormData or options object ----
-// Usage 1 (existing): apiUpload('/api/users/avatar', formData, token?)
-// Usage 2 (options):  apiUpload('/api/users/avatar', { file, fileField: 'avatar', fields: {...} })
-export async function apiUpload(url, formDataOrOptions /*, tokenIgnored */) {
-  let fd;
-  if (formDataOrOptions instanceof FormData) {
-    fd = formDataOrOptions;
-  } else {
-    const { file, fileField = 'avatar', fields = {} } = formDataOrOptions || {};
-    fd = new FormData();
+// PATCH multipart/form-data (avatar, etc.)
+export async function apiUpload(url, formDataOrOptions) {
+  const fd = formDataOrOptions instanceof FormData ? formDataOrOptions : (() => {
+    const fd = new FormData();
+    const { file, fileField = 'file', fields = {} } = formDataOrOptions || {};
     if (file) fd.append(fileField, file);
-    Object.entries(fields).forEach(([k, v]) => {
-      if (v !== undefined && v !== null) fd.append(k, v);
-    });
-  }
+    Object.entries(fields).forEach(([k, v]) => fd.append(k, v));
+    return fd;
+  })();
 
   const res = await fetch(buildUrl(url), {
     method: 'PATCH',
     headers: {
       Accept: 'application/json',
       ...authHeader(),
-      // DO NOT set Content-Type for FormData; browser will set boundary
     },
     body: fd,
   });

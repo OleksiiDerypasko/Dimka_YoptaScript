@@ -1,159 +1,182 @@
+/* =========================================================
+   PostCard component — theme-aware + green brand accent
+   ========================================================= */
+
 .pc {
-  background: #442c29;
-  border: 1px solid #2a1f1d;
-  border-radius: 14px;
-  padding: 16px;
-  color: #f5eddc;
-  box-shadow: 0 3px 14px rgba(0,0,0,.25);
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-lg);
+  padding: 16px 18px;
+  color: var(--text);
+  box-shadow: var(--shadow-1);
+  transition:
+    transform .06s ease,
+    box-shadow .15s ease,
+    border-color .15s ease,
+    background .15s ease;
+  display: grid;
+  gap: 10px;
 }
 
-.pc--line {
-  border-radius: 12px;
+/* Hoverable */
+.pc--clickable { cursor: pointer; }
+.pc--clickable:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-2);
+  background: var(--bg-elev-1);
+  border-color: var(--accent);
+}
+.pc--clickable:active { transform: translateY(0); }
+
+/* Density */
+.pc--card { padding: 18px 20px; }
+.pc--line { padding: 14px 16px; border-radius: var(--radius-md); }
+
+/* Inactive posts */
+.pc--inactive {
+  opacity: .75;
+  filter: grayscale(20%) saturate(.8);
+  background: var(--post-inactive-bg, var(--card-bg));
 }
 
-/* Header */
-.pc__head { margin-bottom: 8px; }
+/* Header (author + date) */
+.pc__head { display: flex; align-items: center; }
+.pc__meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.pc__author {
+  font-weight: 600;
+  color: var(--accent); /* ВИКОРИСТАННЯ ЗЕЛЕНОГО АКЦЕНТУ */
+}
+.pc__dot { opacity: .6; }
+
+/* Title + preview */
+.pc__main { display: grid; gap: 6px; }
 .pc__title {
   margin: 0;
   font-size: 20px;
+  line-height: 1.25;
   font-weight: 800;
+  color: var(--text);
+  letter-spacing: .2px;
 }
-.pc__author {
-  margin-top: 6px;
-  font-size: 14px;
-  color: #efd4b5;
+.pc--card .pc__title { font-size: 22px; }
+
+.pc__preview {
+  margin: 0;
+  color: var(--text-muted);
+  opacity: .95;
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
 }
 
-/* Categories chips */
+/* Categories */
 .pc__cats {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  margin: 8px 0 10px;
 }
 .pc__cat {
   font-size: 12px;
-  color: #ffe7c8;
-  background: #5a3a36;
-  border: 1px solid #6d4742;
+  color: var(--text); /* ЗМІНЕНО з --accent-contrast */
+  background: rgb(var(--brand-600-rgb) / .25); /* ПРОЗОРИЙ ЗЕЛЕНИЙ ФОН */
+  border: 1px solid rgb(var(--brand-600-rgb) / .55); /* ПРОЗОРА ЗЕЛЕНА РАМКА */
   padding: 3px 8px;
   border-radius: 999px;
 }
-.pc__cat--empty {
-  opacity: .7;
-  font-style: italic;
-}
-.pc__cat--loading {
-  opacity: .8;
-}
+.pc__cat--empty { opacity: .7; font-style: italic; }
+.pc__cat--loading { opacity: .8; }
 
-/* Text preview */
-.pc__preview {
-  color: #ffeeda;
-  opacity: .95;
-  margin-bottom: 12px;
-}
-
-/* Footer with badges */
+/* Footer */
 .pc__foot {
-  display: flex;
-  justify-content: space-between;
+  margin-top: 2px;
+  display: grid;
+  grid-template-columns: 1fr auto;
   align-items: center;
   gap: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
 }
 
-.pc__date {
-  color: #f8e0ba;
-  opacity: .9;
-  font-size: 14px;
-}
-
+/* Badges */
 .pc__badges {
   display: inline-flex;
   align-items: center;
   gap: 10px;
 }
-
 .pc-badge {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 4px 8px;
+  padding: 5px 10px;
   border-radius: 999px;
-  background: #3a2825;
-  border: 1px solid #553a36;
+  background: rgb(var(--brand-700-rgb) / .25); /* ПРОЗОРИЙ ЗЕЛЕНИЙ ФОН */
+  border: 1px solid rgb(var(--brand-700-rgb) / .45); /* ПРОЗОРА ЗЕЛЕНА РАМКА */
   font-size: 12px;
-  color: #ffeeda;
+  color: var(--text);
 }
+.pc-badge__icon { line-height: 1; opacity: .9; }
+.pc-badge__val { font-weight: 800; }
 
-.pc-badge__icon { line-height: 1; }
-.pc-badge__label {
-  opacity: .85;
-}
-.pc-badge__val {
-  font-weight: 800;
-}
-
-/* Базові стилі картки вже є у вас; додаю лише поведінку “усе клікабельне” */
-
-.pc--clickable {
-  cursor: pointer;
-  transition: transform .06s ease, box-shadow .12s ease, border-color .12s ease;
-}
-
-.pc--clickable:hover {
-  box-shadow: 0 8px 22px rgba(0,0,0,.35);
-  border-color: #3a3f51;
-}
-
-.pc--clickable:active {
-  transform: translateY(1px);
-}
-
-/* На випадок, якщо у .pc__title є <a>, прибираємо стандартне підкреслення */
-.pc__title a {
-  color: inherit;
-  text-decoration: none;
-}
-
-.pc__head { position: relative; }
-.pc__edit {
-  position: absolute;
-  right: 0;
-  top: 0;
-  transform: translateY(-4px);
-  border: 1px solid var(--card-border, #242b39);
-  background: var(--bg-elev, #151922);
-  color: var(--text, #e5e7eb);
-  border-radius: 10px;
-  padding: 6px 10px;
-  cursor: pointer;
-}
-.pc__edit:hover {
-  border-color: var(--accent-weak, #3b82f6);
-  background: #1e293b;
-}
-
-/* додайте в кінець src/shared/PostCard.css */
-
-.pc__foot {
-  display: grid;
-  grid-template-columns: 1fr auto auto;
-  gap: 12px;
-  align-items: center;
-}
-
-.pc__delete {
+/* Actions */
+.pc__actions {
+  display: inline-flex;
+  gap: 8px;
   justify-self: end;
+}
+
+/* Base button */
+.pc__btn {
   height: 34px;
   padding: 0 12px;
-  border-radius: 12px;
-  border: 1px solid #7f1d1d;
-  background: #1f2937;
-  color: #fecaca;
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  background: var(--button-bg);
+  color: var(--button-text);
   cursor: pointer;
+  transition:
+    background .15s ease,
+    border-color .15s ease,
+    transform .04s ease;
 }
-.pc__delete:hover { background: #111827; }
-.pc__delete:disabled { opacity: .6; cursor: default; }
+.pc__btn:hover {
+  background: var(--button-bg-hover);
+  border-color: var(--accent-hover);
+}
+.pc__btn:active { transform: translateY(1px); }
+.pc__btn:disabled { opacity: .6; cursor: default; }
 
+/* Edit button (accent = green) */
+.pc__btn--edit {
+  border-color: rgb(var(--brand-600-rgb) / .45);
+  background: rgb(var(--brand-600-rgb) / .25);
+  color: var(--accent-contrast);
+}
+.pc__btn--edit:hover {
+  border-color: var(--accent);
+  background: rgb(var(--brand-600-rgb) / .35);
+}
 
+/* Danger button (red) */
+.pc__btn--danger {
+  border-color: rgb(var(--danger-500-rgb) / .4);
+  background: rgb(var(--danger-500-rgb) / .12);
+  color: var(--danger);
+}
+.pc__btn--danger:hover {
+  background: rgb(var(--danger-500-rgb) / .22);
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .pc--card .pc__title { font-size: 20px; }
+  .pc__foot { grid-template-columns: 1fr; gap: 10px; }
+  .pc__actions { justify-self: start; }
+}

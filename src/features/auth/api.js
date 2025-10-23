@@ -16,3 +16,12 @@ export const loginApi = ({ login, email, password }) =>
 // Отримати користувача за id (потрібен Bearer)
 export const getUserByIdApi = (id) =>
   apiGet(`/api/users/${id}`);
+
+// ===== NEW: Password reset flow =====
+// Крок 1: надіслати запит на email (лист із посиланням /reset/:token на фронті)
+export const requestPasswordResetApi = (email) =>
+  apiSend('/api/auth/password-reset', 'POST', { email });
+
+// Крок 2: підтвердити зміну пароля по токену
+export const confirmPasswordResetApi = (token, password) =>
+  apiSend(`/api/auth/password-reset/${encodeURIComponent(token)}`, 'POST', { password });

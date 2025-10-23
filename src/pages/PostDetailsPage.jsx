@@ -1,8 +1,10 @@
+// src/pages/PostDetailsPage.jsx
 import React, { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import './PostDetailsPage.css';
 import { useLocation, useParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { selectAuthToken, selectAuthUser } from '../features/auth/selectors';
+import ToggleSwitch from '../shared/ui/ToggleSwitch';
 import {
   getPostById,
   getPostCategories,
@@ -38,11 +40,37 @@ function parseReplyAnchor(content = '') {
   return { parentId, pure };
 }
 
+// Патч статусу коментаря (без нових бібліотек)
+async function patchCommentStatus(commentId, status, token) {
+  const res = await fetch(`/api/comments/${commentId}`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      Accept: 'application/json',
+      'Cache-Control': 'no-store',
+    },
+    body: JSON.stringify({ status }), // 'active' | 'inactive'
+  });
+  const text = await res.text();
+  let data = null;
+  try { data = text ? JSON.parse(text) : null; } catch { data = text || null; }
+  if (!res.ok) {
+    const msg = (data && (data.error || data.message)) || `HTTP ${res.status}`;
+    const err = new Error(msg);
+    err.status = res.status;
+    err.data = data;
+    throw err;
+  }
+  return data;
+}
+
 export default function PostDetailsPage() {
   const { id } = useParams();
   const location = useLocation();
   const token = useSelector(selectAuthToken);
   const me = useSelector(selectAuthUser);
+  const isAdmin = me?.role === 'admin';
 
   const statePost = location.state?.post;
 
@@ -59,7 +87,7 @@ export default function PostDetailsPage() {
   const [isFav, setIsFav] = useState(false);
   const [favLoading, setFavLoading] = useState(false);
 
-  const [comments, setComments] = useState([]); // сирий список із бекенду
+  const [comments, setComments] = useState([]); // сирий список
   const [commentsLoading, setCommentsLoading] = useState(false);
 
   // Дерево коментарів (1 рівень вкладеності)
@@ -157,41 +185,121 @@ export default function PostDetailsPage() {
     return () => { abort = true; };
   }, [me?.id, token, postId]);
 
-  // ===== Коментарі: завантаження й побудова дерева (1 рівень) =====
+// ---- побудова дерева з плоского списку
+const buildTree = useCallback((flat) => {
+  const normalized = (Array.isArray(flat) ? flat : []).map((c) => {
+    const { parentId, pure } = parseReplyAnchor(c.content || '');
+    return { ...c, parentId: parentId || null, pureContent: pure };
+  });
+
+  // ==== ADMIN: показуємо все, як є ====
+  if (isAdmin) {
+    const map = new Map(normalized.map((c) => [c.id, c]));
+    const roots = [];
+    const childrenByParent = new Map();
+    normalized.forEach((c) => {
+      const p = c.parentId;
+      if (p && map.has(p)) {
+        if (!childrenByParent.has(p)) childrenByParent.set(p, []);
+        childrenByParent.get(p).push(c);
+      } else {
+        roots.push(c);
+      }
+    });
+    const tree = roots.map((node) => ({
+      node,
+      replies: (childrenByParent.get(node.id) || []).sort(
+        (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+      ),
+    }));
+    return { normalized, tree };
+  }
+
+  // ==== USER: включаємо лише активні піддерева ====
+  // Якщо батько inactive — прибираємо всю його гілку (діти не «підстрибує» в корінь)
+  const byId = new Map(normalized.map((c) => [c.id, c]));
+  const byParent = new Map(); // parentId -> children[]
+  normalized.forEach((c) => {
+    if (!c.parentId) return;
+    if (!byParent.has(c.parentId)) byParent.set(c.parentId, []);
+    byParent.get(c.parentId).push(c);
+  });
+
+  function collectActiveSubtree(node, acc) {
+    const isActive = (node.status ?? 'active') === 'active';
+    if (!isActive) return; // обрізали всю гілку
+    acc.push(node);
+    const kids = byParent.get(node.id) || [];
+    kids.forEach((child) => collectActiveSubtree(child, acc));
+  }
+
+  // корені — ті, у кого немає parentId або parent відсутній у списку
+  const visible = [];
+  normalized.forEach((c) => {
+    const isRoot = !c.parentId || !byId.has(c.parentId);
+    if (isRoot) collectActiveSubtree(c, visible);
+  });
+
+  // тепер будуємо дерево лише з visible — сиріт більше не буде
+  const map = new Map(visible.map((c) => [c.id, c]));
+  const roots = [];
+  const childrenByParent2 = new Map();
+  visible.forEach((c) => {
+    const p = c.parentId;
+    if (p && map.has(p)) {
+      if (!childrenByParent2.has(p)) childrenByParent2.set(p, []);
+      childrenByParent2.get(p).push(c);
+    } else {
+      roots.push(c);
+    }
+  });
+
+  const tree = roots.map((node) => ({
+    node,
+    replies: (childrenByParent2.get(node.id) || []).sort(
+      (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+    ),
+  }));
+
+  return { normalized: visible, tree };
+}, [isAdmin]);
+
+  // ===== Коментарі: завантаження =====
   useEffect(() => {
     let abort = false;
     (async () => {
       try {
         setCommentsLoading(true);
-        const list = await listPostComments(postId, token); // Array<Comment>
+
+        let list = [];
+        if (isAdmin) {
+          // Адмін бачить усі
+          list = await listPostComments(postId, token);
+        } else {
+          // Звичайний юзер: пробуємо спеціальний "публічний" ендпоїнт
+          // 1) ?status=active
+          let ok = false;
+          try {
+            const res = await fetch(`/api/posts/${postId}/comments?status=active`, {
+              headers: { Accept: 'application/json', 'Cache-Control': 'no-store' },
+              cache: 'no-store',
+            });
+            if (res.ok) {
+              list = await res.json();
+              ok = true;
+            }
+          } catch {}
+
+          // 2) fallback: звичайний список і фільтруємо на клієнті
+          if (!ok) {
+            const raw = await listPostComments(postId, token);
+            list = Array.isArray(raw) ? raw.filter(c => (c.status ?? 'active') === 'active') : [];
+          }
+        }
+
         if (abort) return;
 
-        const normalized = (Array.isArray(list) ? list : []).map((c) => {
-          const { parentId, pure } = parseReplyAnchor(c.content || '');
-          return { ...c, parentId: parentId || null, pureContent: pure };
-        });
-
-        // побудова дерева: top-level = !parentId або немає такого parent у списку
-        const map = new Map(normalized.map((c) => [c.id, c]));
-        const roots = [];
-        const childrenByParent = new Map();
-        normalized.forEach((c) => {
-          const p = c.parentId;
-          if (p && map.has(p)) {
-            if (!childrenByParent.has(p)) childrenByParent.set(p, []);
-            childrenByParent.get(p).push(c);
-          } else {
-            roots.push(c);
-          }
-        });
-
-        const tree = roots.map((node) => ({
-          node,
-          replies: (childrenByParent.get(node.id) || []).sort(
-            (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
-          ),
-        }));
-
+        const { normalized, tree } = buildTree(list);
         setComments(normalized);
         setCommentTree(tree);
       } catch {
@@ -204,7 +312,7 @@ export default function PostDetailsPage() {
       }
     })();
     return () => { abort = true; };
-  }, [postId, token]);
+  }, [postId, token, isAdmin, buildTree]);
 
   // ===== ПУБЛІЧНЕ підтягування авторів коментарів (без токена) =====
   useEffect(() => {
@@ -428,17 +536,12 @@ export default function PostDetailsPage() {
       const { parentId, pure } = parseReplyAnchor(created.content || '');
       const createdExt = { ...created, parentId: parentId || null, pureContent: pure };
 
+      // Якщо не адмін і хтось (не ти) створив неактивний коментар — з публічного API він би не прийшов.
+      // Але ми створюємо СВІЙ коментар — система робить його активним; додаємо в дерево:
       setComments((prev) => [createdExt, ...prev]);
-      setCommentTree((prev) => {
-        if (createdExt.parentId && prev.some(x => x.node.id === createdExt.parentId)) {
-          return prev.map((group) => {
-            if (group.node.id !== createdExt.parentId) return group;
-            return { ...group, replies: [createdExt, ...group.replies] };
-          });
-        } else {
-          return [{ node: createdExt, replies: [] }, ...prev];
-        }
-      });
+      const { normalized, tree } = buildTree([createdExt, ...comments]);
+      setComments(normalized);
+      setCommentTree(tree);
 
       setNewComment('');
       setReplyTo(null);
@@ -484,6 +587,45 @@ export default function PostDetailsPage() {
       setComments(prevList);
       setCommentTree(prevTree);
       alert(e?.message || 'Failed to delete comment');
+    }
+  }
+
+  // ===== ДІЇ: Зміна статусу коментаря =====
+  async function onToggleCommentStatus(commentId, nextActive) {
+    if (!token) { alert('Please login'); return; }
+
+    // Правила показу перемикача:
+    // - Адмін — завжди може;
+    // - Юзер — лише для СВОГО коментаря (перемикач малюємо тільки тоді).
+    const target = comments.find(c => c.id === commentId);
+    const canByRole = isAdmin || (me?.id && target && target.authorId === me.id);
+    if (!canByRole) { alert('You cannot change this comment status'); return; }
+
+    const newStatus = nextActive ? 'active' : 'inactive';
+
+    // optimistic UI
+    const before = comments;
+    const after = before.map(c => c.id === commentId ? { ...c, status: newStatus } : c);
+    if (isAdmin) {
+      // Адмін бачить усі — не фільтруємо
+      const { normalized, tree } = buildTree(after);
+      setComments(normalized);
+      setCommentTree(tree);
+    } else {
+      // Юзер: показуємо тільки активні => якщо зробив неактивним — коментар зникне
+      const { normalized, tree } = buildTree(after);
+      setComments(normalized);
+      setCommentTree(tree);
+    }
+
+    try {
+      await patchCommentStatus(commentId, newStatus, token);
+    } catch (e) {
+      // rollback
+      const { normalized, tree } = buildTree(before);
+      setComments(normalized);
+      setCommentTree(tree);
+      alert(e?.message || 'Failed to change status');
     }
   }
 
@@ -602,12 +744,16 @@ export default function PostDetailsPage() {
             const cell = cRx[node.id] || { likes: node.likesCount ?? 0, dislikes: node.dislikesCount ?? 0, myReaction: null, loading: false };
             const isCollapsed = !!collapsed[node.id];
 
+            const isActive = (node.status ?? 'active') === 'active';
+
             return (
               <div key={node.id} className="comment-item">
                 <div className="comment-meta">
                   <span className="comment-author">{displayAuthor(node)}</span>
                   <span className="comment-dot">•</span>
                   <time className="comment-date">{new Date(node.createdAt).toLocaleString()}</time>
+
+                  {/* Лайки/дизлайки */}
                   <span className="comment-dot">•</span>
                   <button
                     type="button"
@@ -623,6 +769,30 @@ export default function PostDetailsPage() {
                     disabled={cell.loading}
                     title="Dislike"
                   >👎 {cell.dislikes}</button>
+
+                  {/* Статус/перемикач:
+                      - Адмін: бачить бейдж + перемикач завжди
+                      - Користувач: бейдж НЕ показуємо (щоб не було "неактивний"),
+                        але якщо коментар мій — показуємо перемикач */}
+                  {(isAdmin || (me?.id && node.authorId === me.id)) && (
+                    <>
+                      {isAdmin && <span className="comment-dot">•</span>}
+                      {isAdmin && (
+                        <span className={`pc-status ${isActive ? 'is-ok' : 'is-off'}`}>
+                          {isActive ? 'active' : 'inactive'}
+                        </span>
+                      )}
+                      <span className="comment-dot">•</span>
+                      <ToggleSwitch
+                        checked={isActive}
+                        onChange={(next)=>onToggleCommentStatus(node.id, next)}
+                        label={isAdmin ? 'Comment' : 'Visible'}
+                        title={isAdmin ? 'Admin can set status' : 'You can hide/show your comment'}
+                      />
+                    </>
+                  )}
+
+                  {/* Reply/Delete */}
                   <span className="comment-dot">•</span>
                   <button
                     type="button"
@@ -642,11 +812,12 @@ export default function PostDetailsPage() {
                     </>
                   )}
                 </div>
+
                 <div className="comment-content">
                   {node.pureContent ?? node.content}
                 </div>
 
-                {/* Replies (2-й рівень): collapsible, без можливості відповісти */}
+                {/* Replies (2-й рівень): collapsible */}
                 {!!replies.length && (
                   <div className="replies">
                     <button
@@ -662,12 +833,14 @@ export default function PostDetailsPage() {
                         {replies.map((r) => {
                           const canDelete = (me?.id && r.authorId === me.id) || (me?.role === 'admin');
                           const rCell = cRx[r.id] || { likes: r.likesCount ?? 0, dislikes: r.dislikesCount ?? 0, myReaction: null, loading: false };
+                          const rActive = (r.status ?? 'active') === 'active';
                           return (
                             <div key={r.id} className="reply-item">
                               <div className="comment-meta">
                                 <span className="comment-author">{displayAuthor(r)}</span>
                                 <span className="comment-dot">•</span>
                                 <time className="comment-date">{new Date(r.createdAt).toLocaleString()}</time>
+
                                 <span className="comment-dot">•</span>
                                 <button
                                   type="button"
@@ -683,6 +856,25 @@ export default function PostDetailsPage() {
                                   disabled={rCell.loading}
                                   title="Dislike"
                                 >👎 {rCell.dislikes}</button>
+
+                                {(isAdmin || (me?.id && r.authorId === me.id)) && (
+                                  <>
+                                    {isAdmin && <span className="comment-dot">•</span>}
+                                    {isAdmin && (
+                                      <span className={`pc-status ${rActive ? 'is-ok' : 'is-off'}`}>
+                                        {rActive ? 'active' : 'inactive'}
+                                      </span>
+                                    )}
+                                    <span className="comment-dot">•</span>
+                                    <ToggleSwitch
+                                      checked={rActive}
+                                      onChange={(next)=>onToggleCommentStatus(r.id, next)}
+                                      label={isAdmin ? 'Comment' : 'Visible'}
+                                      title={isAdmin ? 'Admin can set status' : 'You can hide/show your comment'}
+                                    />
+                                  </>
+                                )}
+
                                 {canDelete && (
                                   <>
                                     <span className="comment-dot">•</span>

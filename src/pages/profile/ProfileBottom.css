@@ -1,6 +1,6 @@
 /* Панель праворуч (тепер знизу) */
 .pb-panel {
-  /* Стилі картки з .profile-page.css вже застосовуються */
+  /* Стилі картки з .profile-page.css вже застосовуються (var(--bg-elev-1), var(--card-border) тощо) */
 }
 
 /* Фільтри зверху */
@@ -18,10 +18,13 @@
 .pb-number,
 .pb-dd__button {
   height: 38px;
-  background: #0f131c;
-  color: #e5e7eb;
-  border: 1px solid #2a3040;
-  border-radius: 10px;
+  /* Змінено: фон на основний фон */
+  background: var(--bg-main);
+  /* Змінено: колір тексту на основний */
+  color: var(--text);
+  /* Змінено: рамка на колір рамки картки */
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-sm); /* Використовуємо токен радіуса */
   padding: 0 10px;
   font-size: 14px;
 }
@@ -44,12 +47,16 @@
   text-overflow: ellipsis;
 }
 .pb-dd__button::-webkit-details-marker { display: none; }
-.pb-dd__button:hover { border-color: #3b82f6; }
+.pb-dd__button:hover {
+  /* Змінено: рамка на акцентний (зелений) */
+  border-color: var(--accent);
+}
 
 .pb-dd[open] .pb-dd__button { 
   border-bottom-left-radius: 0; 
   border-bottom-right-radius: 0; 
-  border-color: #3b82f6;
+  /* Змінено: рамка на акцентний (зелений) */
+  border-color: var(--accent);
 }
 
 .pb-dd__menu {
@@ -61,13 +68,16 @@
   min-width: 240px;
   max-height: 250px;
   overflow-y: auto;
-  background: #141823;
-  border: 1px solid #3b82f6;
+  /* Змінено: фон на фон картки */
+  background: var(--card-bg);
+  /* Змінено: рамка на акцентний (зелений) */
+  border: 1px solid var(--accent);
   border-top: none;
-  border-bottom-left-radius: 10px;
-  border-bottom-right-radius: 10px;
+  border-bottom-left-radius: var(--radius-sm);
+  border-bottom-right-radius: var(--radius-sm);
   padding: 8px;
-  box-shadow: 0 10px 24px rgba(0,0,0,.35);
+  /* Змінено: тінь на токен тіні */
+  box-shadow: var(--shadow-1);
 }
 
 .pb-dd__item {
@@ -75,33 +85,45 @@
   align-items: center; 
   gap: 8px;
   padding: 6px 8px;
-  color: #e5e7eb;
+  /* Змінено: колір тексту на основний */
+  color: var(--text);
   border-radius: 6px;
   cursor: pointer;
 }
 .pb-dd__item:hover {
-  background: #1f232f;
+  /* Змінено: фон при наведенні на піднятий фон */
+  background: var(--bg-elev-1);
 }
 .pb-dd__item input {
   transform: scale(1.1);
 }
 
-.pb-dd__empty { padding: 6px; color: #9aa6bd; }
+.pb-dd__empty {
+  padding: 6px;
+  /* Змінено: колір на приглушений текст */
+  color: var(--text-muted);
+}
 
 /* Кнопка Apply справа */
 .pb-actions { display: flex; justify-content: flex-end; }
 .pb-apply {
   height: 38px;
   padding: 0 18px;
-  background: #3b82f6;
-  color: #fff;
+  /* Змінено: фон на акцентний (зелений) */
+  background: var(--accent);
+  /* Змінено: колір тексту на контрастний до акценту */
+  color: var(--accent-contrast);
   border: none;
-  border-radius: 10px;
+  border-radius: var(--radius-sm);
   font-weight: 700;
   cursor: pointer;
-  transition: filter .1s ease;
+  transition: background .15s ease; /* Змінено з filter на background */
 }
-.pb-apply:hover { filter: brightness(1.1); }
+.pb-apply:hover {
+  /* Змінено: фон при наведенні на акцентний ховер */
+  background: var(--accent-hover);
+  filter: none; /* Прибрано filter */
+}
 .pb-apply:disabled {
   opacity: 0.6;
   cursor: not-allowed;
@@ -122,28 +144,37 @@
 .pb-tab {
   height: 38px;
   padding: 0 18px;
-  border-radius: 12px; /* Закруглені кути */
+  border-radius: var(--radius-sm);
   font-weight: 700;
   font-size: 14px;
   cursor: pointer;
   transition: background .15s ease, color .15s ease, border-color .15s ease;
   
   /* Стиль НЕАКТИВНОГО таба */
-  background: #1f232f;
-  color: #aeb3c0;
-  border: 1px solid #2a3040;
+  /* Змінено: фон на піднятий фон */
+  background: var(--bg-elev-1);
+  /* Змінено: колір тексту на приглушений текст */
+  color: var(--text-muted);
+  /* Змінено: рамка на колір рамки картки */
+  border: 1px solid var(--card-border);
 }
 
 .pb-tab:hover {
-  background: #2a3040;
-  color: #fff;
+  /* Змінено: фон при наведенні на фон картки */
+  background: var(--card-bg);
+  /* Змінено: колір тексту на основний */
+  color: var(--text);
+  /* Рамка залишиться var(--card-border) або можна зробити м'який акцент */
 }
 
 .pb-tab.is-active {
   /* Стиль АКТИВНОГО таба */
-  background: #3b82f6; /* Такий же, як кнопка Apply */
-  color: #fff;
-  border-color: #3b82f6;
+  /* Змінено: фон на акцентний (зелений) */
+  background: var(--accent);
+  /* Змінено: колір тексту на контрастний до акценту */
+  color: var(--accent-contrast);
+  /* Змінено: рамка на акцентний (зелений) */
+  border-color: var(--accent);
 }
 /* ─── Кінець нового дизайну табів ─── */
 
@@ -162,25 +193,27 @@
 }
 .pb-item {
   /* Можна додати стилі для обгортки картки, якщо потрібно */
-  /* background: #1b2130; */
-  /* border: 1px solid #2a3040; */
-  /* border-radius: 12px; */
-  /* padding: 12px; */
 }
 
 /* Стейти (завантаження, помилка, порожньо) */
 .pb-state { 
   padding: 16px; 
-  color: #cbd5e1; 
-  background: #1b2130;
-  border: 1px solid #2a3040;
-  border-radius: 12px;
+  /* Змінено: колір тексту на приглушений текст */
+  color: var(--text-muted); 
+  /* Змінено: фон на піднятий фон */
+  background: var(--bg-elev-1);
+  /* Змінено: рамка на колір рамки картки */
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-sm);
   text-align: center;
 }
 .pb-state--err { 
-  color: #ffb4b4; 
-  background: #3f2525;
-  border-color: #7f3b3b;
+  /* Змінено: колір тексту на колір небезпеки */
+  color: var(--danger); 
+  /* Змінено: фон на напівпрозорий фон небезпеки */
+  background: rgba(var(--danger-500-rgb) / 0.1);
+  /* Змінено: рамка на колір небезпеки */
+  border-color: var(--danger);
 }
 
 /* Адаптив */

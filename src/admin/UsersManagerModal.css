@@ -1,5 +1,5 @@
 /* =======================
-   USERS MANAGER MODAL
+   USERS MANAGER MODAL - GREEN THEME
    ======================= */
 
 .um {
@@ -22,60 +22,105 @@
   flex: 1;
   min-width: 220px;
   height: 38px;
-  border-radius: 10px;
-  border: 1px solid #334155;
-  background: #0b1220;
-  color: #e5e7eb;
+  border-radius: var(--radius-sm); /* Використовуємо токен радіуса */
+  /* Змінено: рамка на колір рамки */
+  border: 1px solid var(--border);
+  /* Змінено: фон на основний фон */
+  background: var(--bg-main);
+  /* Змінено: колір тексту на основний */
+  color: var(--text);
   padding: 0 12px;
   font-size: 14px;
   transition: border-color 0.2s;
 }
-.um__search:focus { outline: none; border-color: #6366f1; }
+.um__search:focus {
+  outline: none;
+  /* Змінено: рамка на акцентний (зелений) */
+  border-color: var(--accent);
+}
 
 .um__create { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 .um__createForm { display: flex; gap: 8px; flex-wrap: wrap; }
 
 .um__input {
   height: 38px;
-  border-radius: 10px;
-  border: 1px solid #334155;
-  background: #0b1220;
-  color: #e5e7eb;
+  border-radius: var(--radius-sm);
+  /* Змінено: рамка на колір рамки */
+  border: 1px solid var(--border);
+  /* Змінено: фон на основний фон */
+  background: var(--bg-main);
+  /* Змінено: колір тексту на основний */
+  color: var(--text);
   padding: 0 10px;
   font-size: 14px;
 }
-.um__input:focus { outline: none; border-color: #6366f1; }
+.um__input:focus {
+  outline: none;
+  /* Змінено: рамка на акцентний (зелений) */
+  border-color: var(--accent);
+}
 
 .um__btn {
   height: 38px;
   padding: 0 14px;
-  border-radius: 10px;
-  border: 1px solid #334155;
-  background: #0b1220;
-  color: #e5e7eb;
+  border-radius: var(--radius-sm);
+  /* Змінено: рамка на колір рамки */
+  border: 1px solid var(--border);
+  /* Змінено: фон на основний фон */
+  background: var(--bg-main);
+  /* Змінено: колір тексту на основний */
+  color: var(--text);
   cursor: pointer;
   transition: background 0.15s, transform 0.05s;
 }
-.um__btn:hover { background: #0f172a; }
+.um__btn:hover {
+  /* Змінено: фон при наведенні на піднятий фон */
+  background: var(--bg-elev-1);
+}
 .um__btn:active { transform: scale(0.98); }
 
 .um__btn--primary {
-  border-color: #4f46e5;
-  background: #312e81;
-  color: #c7d2fe;
+  /* Змінено: рамка на акцентний (зелений) */
+  border-color: var(--accent);
+  /* Змінено: фон на акцентний (зелений) */
+  background: var(--accent);
+  /* Змінено: колір тексту на контрастний */
+  color: var(--accent-contrast);
 }
-.um__btn--primary:hover { background: #3730a3; }
+.um__btn--primary:hover {
+  /* Змінено: фон при наведенні на акцентний ховер */
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
+}
 
 .um__btn--danger {
-  border-color: #7f1d1d;
-  color: #fecaca;
+  /* Змінено: рамка на колір небезпеки */
+  border-color: var(--danger-700);
+  /* Змінено: колір тексту на колір небезпеки */
+  color: var(--danger);
 }
-.um__btn--danger:hover { background: #1b0f0f; }
+.um__btn--danger:hover {
+  /* Змінено: фон при наведенні на прозорий фон небезпеки */
+  background: rgba(var(--danger-500-rgb) / 0.1);
+}
 
 /* States */
-.um__state { text-align: center; color: #94a3b8; padding: 10px 0; }
-.um__state--err { color: #ef4444; }
-.um__empty { text-align: center; color: #64748b; padding: 12px 0; }
+.um__state {
+  text-align: center;
+  /* Змінено: колір на приглушений текст */
+  color: var(--text-muted);
+  padding: 10px 0;
+}
+.um__state--err {
+  /* Змінено: колір на колір небезпеки */
+  color: var(--danger);
+}
+.um__empty {
+  text-align: center;
+  /* Змінено: колір на приглушений текст */
+  color: var(--text-muted);
+  padding: 12px 0;
+}
 
 /* List */
 .um__list {
@@ -92,22 +137,63 @@
   grid-template-columns: 1fr auto;
   gap: 10px;
   align-items: center;
-  border: 1px solid #334155;
-  background: #0b1220;
-  border-radius: 12px;
+  /* Змінено: рамка на колір рамки */
+  border: 1px solid var(--border);
+  /* Змінено: фон на основний фон */
+  background: var(--bg-main);
+  border-radius: var(--radius-md);
   padding: 10px 12px;
+  transition: background 0.15s;
+}
+.um__row:hover {
+  /* Додаємо hover стан, як у Category Manager */
+  background: var(--bg-elev-1);
 }
 
-.um__title { color: #e5e7eb; }
+.um__title {
+  /* Змінено: колір тексту на основний */
+  color: var(--text);
+}
 .um__line { display: flex; gap: 8px; align-items: center; }
-.um__muted { color: #94a3b8; font-size: 13px; }
-.um__dot { color: #334155; }
+.um__muted {
+  /* Змінено: колір на приглушений текст */
+  color: var(--text-muted);
+  font-size: 13px;
+}
+.um__dot {
+  /* Змінено: колір на колір рамки */
+  color: var(--border);
+}
 .um__login { font-weight: 700; }
 .um__name { font-weight: 600; }
-.um__role { text-transform: uppercase; font-size: 11px; padding: 2px 6px; border-radius: 999px; border: 1px solid #334155; }
-.um__role--admin { border-color: #f59e0b; color: #f59e0b; }
-.um__role--user  { border-color: #60a5fa; color: #60a5fa; }
-.um__badge { margin-left: 8px; font-size: 11px; color: #22c55e; border: 1px solid #14532d; padding: 2px 6px; border-radius: 8px; }
+.um__role {
+  text-transform: uppercase;
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: 999px;
+  /* Змінено: рамка на колір рамки */
+  border: 1px solid var(--border);
+}
+.um__role--admin {
+  /* Змінено: рамка на колір попередження (жовтий/помаранчевий) */
+  border-color: var(--brand-400); /* Використовуємо жовтий/світлий зелений для адміна */
+  color: var(--brand-400);
+}
+.um__role--user  {
+  /* Змінено: рамка на м'який зелений */
+  border-color: var(--brand-300);
+  color: var(--brand-300);
+}
+.um__badge {
+  margin-left: 8px;
+  font-size: 11px;
+  /* Змінено: колір на зелений */
+  color: var(--brand-400);
+  /* Змінено: рамка на темний зелений */
+  border: 1px solid var(--brand-800);
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+}
 
 .um__actions { display: flex; gap: 8px; }
 
@@ -121,5 +207,12 @@
 
 /* Scrollbar */
 .um__list::-webkit-scrollbar { width: 8px; }
-.um__list::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 6px; }
-.um__list::-webkit-scrollbar-thumb:hover { background: #334155; }
+.um__list::-webkit-scrollbar-thumb {
+  /* Змінено: фон на піднятий фон */
+  background: var(--bg-elev-1);
+  border-radius: 6px;
+}
+.um__list::-webkit-scrollbar-thumb:hover {
+  /* Змінено: фон при наведенні на рамку */
+  background: var(--border);
+}

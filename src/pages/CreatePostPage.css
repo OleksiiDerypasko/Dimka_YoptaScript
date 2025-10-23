@@ -1,5 +1,3 @@
-/* src/pages/CreatePostPage.css */
-
 .cpg {
   padding: 24px;
   display: flex;
@@ -9,10 +7,13 @@
 .cpg__card {
   width: 100%;
   max-width: 760px;
-  border: 1px solid var(--card-border, #242b39);
-  border-radius: 16px;
-  background: var(--bg-elev, #151922);
-  color: var(--text, #e5e7eb);
+  /* Змінено: рамка на колір рамки картки */
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-lg); /* Використовуємо токен радіуса */
+  /* Змінено: фон на піднятий фон */
+  background: var(--bg-elev-1);
+  /* Змінено: колір тексту на основний */
+  color: var(--text);
   padding: 20px 22px;
   display: grid;
   gap: 14px;
@@ -25,20 +26,29 @@
 }
 
 .cpg__field { display: grid; gap: 6px; }
-.cpg__label { color: var(--text-dim, #9aa6b2); font-size: 13px; }
+.cpg__label {
+  /* Змінено: колір на приглушений текст */
+  color: var(--text-muted);
+  font-size: 13px;
+}
 
 .cpg__input, .cpg__textarea {
   width: 100%;
-  border: 1px solid var(--card-border, #242b39);
-  border-radius: 12px;
-  background: var(--bg, #0f1420);
-  color: var(--text, #e5e7eb);
+  /* Змінено: рамка на колір рамки картки */
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-sm); /* Використовуємо токен радіуса */
+  /* Змінено: фон на основний фон */
+  background: var(--bg-main);
+  /* Змінено: колір тексту на основний */
+  color: var(--text);
   padding: 10px 12px;
   outline: none;
 }
 .cpg__input:focus, .cpg__textarea:focus {
-  border-color: var(--accent-weak, #3b82f6);
-  box-shadow: 0 0 0 3px rgba(59,130,246,.15);
+  /* Змінено: рамка на акцентний (зелений) */
+  border-color: var(--accent);
+  /* Змінено: тінь на зелену (використовуємо brand-600-rgb для прозорості) */
+  box-shadow: 0 0 0 3px rgba(var(--brand-600-rgb) / 0.15);
 }
 
 .cpg__cats {
@@ -50,24 +60,40 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  border: 1px solid var(--card-border, #242b39);
+  /* Змінено: рамка на колір рамки картки */
+  border: 1px solid var(--card-border);
   border-radius: 999px;
   padding: 6px 12px;
   cursor: pointer;
   user-select: none;
-  background: var(--bg, #0f1420);
-  color: var(--text, #e5e7eb);
+  /* Змінено: фон на основний фон */
+  background: var(--bg-main);
+  /* Змінено: колір тексту на основний */
+  color: var(--text);
   transition: border-color .15s, background .15s;
 }
 .cpg__chip input { display: none; }
-.cpg__chip:hover { border-color: var(--accent-weak, #3b82f6); }
+.cpg__chip:hover {
+  /* Змінено: рамка на акцентний (зелений) */
+  border-color: var(--accent);
+}
 .cpg__chip.is-active {
-  background: #1e293b;
-  border-color: var(--accent-weak, #3b82f6);
+  /* Змінено: фон на піднятий фон */
+  background: var(--bg-elev-1);
+  /* Змінено: рамка на акцентний (зелений) */
+  border-color: var(--accent);
 }
 
-.cpg__hint { color: var(--text-dim, #9aa6b2); font-size: 12px; }
-.cpg__err  { color: #ef4444; font-size: 13px; }
+.cpg__hint {
+  /* Змінено: колір на приглушений текст */
+  color: var(--text-muted);
+  font-size: 12px;
+}
+.cpg__err  {
+  /* Змінено: колір на колір небезпеки */
+  color: var(--danger);
+  font-size: 13px;
+}
 
 .cpg__actions {
   display: flex;
@@ -77,16 +103,32 @@
 }
 
 .cpg-btn {
-  border: 1px solid var(--card-border, #242b39);
-  border-radius: 10px;
-  background: var(--bg-elev, #151922);
-  color: var(--text, #e5e7eb);
+  /* Змінено: рамка на колір рамки картки */
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-sm);
+  /* Змінено: фон на піднятий фон */
+  background: var(--bg-elev-1);
+  /* Змінено: колір тексту на основний */
+  color: var(--text);
   padding: 8px 14px;
   cursor: pointer;
+  transition: border-color .15s; /* Додано transition */
 }
-.cpg-btn:hover { border-color: var(--accent-weak, #3b82f6); }
+.cpg-btn:hover {
+  /* Змінено: рамка на акцентний (зелений) */
+  border-color: var(--accent);
+}
 .cpg-btn:disabled { opacity: .6; cursor: not-allowed; }
 .cpg-btn--primary {
-  background: #1e293b;
-  border-color: var(--accent-weak, #3b82f6);
+  /* Змінено: фон на акцентний */
+  background: var(--accent);
+  /* Змінено: рамка на акцентний */
+  border-color: var(--accent);
+  /* Змінено: колір тексту на контрастний */
+  color: var(--accent-contrast);
+}
+.cpg-btn--primary:hover {
+  /* Змінено: фон при наведенні на акцентний ховер */
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
 }

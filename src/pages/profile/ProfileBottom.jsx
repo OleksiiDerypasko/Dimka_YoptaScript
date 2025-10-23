@@ -93,17 +93,10 @@ export default function ProfileBottom({ userId, userLogin }) {
     setLoading(true);
     setError(null);
     try {
-      const base = {
-        page: targetPage,
-        limit,
-        sort,
-        order,
-        status: 'active',
-      };
+      const base = { page: targetPage, limit, sort, order, status: 'active' };
       if (checked.length) base.categories = checked;
 
       if (activeTab === 'fav') {
-        // бек-пагінація для обраного (потрібен token)
         const data = await fetchPostsRaw({ ...base, favorite: true }, { token });
         setItems(data?.items || []);
         setTotal(data?.total ?? 0);
@@ -111,7 +104,6 @@ export default function ProfileBottom({ userId, userLogin }) {
         if (data?.limit) setLimit(data.limit);
         setAllMine([]);
       } else {
-        // мої пости — фільтруємо на клієнті (надійно для «власних постів»)
         const bigLimit = Math.max(limit, 100);
         const data = await fetchPostsRaw({ ...base, page: 1, limit: bigLimit });
         const mine = (data?.items || []).filter(
@@ -136,7 +128,7 @@ export default function ProfileBottom({ userId, userLogin }) {
   // первинне завантаження коли є дані користувача
   useEffect(() => {
     if (userId || userLogin) applyAtPage(1);
-  }, [userId, userLogin]); // no eslint rule usage
+  }, [userId, userLogin]);
 
   // перевантаження при зміні таба — з 1 сторінки
   useEffect(() => {
@@ -144,7 +136,7 @@ export default function ProfileBottom({ userId, userLogin }) {
       setPage(1);
       applyAtPage(1);
     }
-  }, [activeTab, userId, userLogin]); // no eslint rule usage
+  }, [activeTab, userId, userLogin]);
 
   function handleApply() {
     setPage(1);
@@ -160,9 +152,7 @@ export default function ProfileBottom({ userId, userLogin }) {
     }
   }
 
-  // Використовується PostCard після видалення поста власником
   function refetchMyPosts() {
-    // Оновимо поточну сторінку з чинними фільтрами
     applyAtPage(page);
   }
 
@@ -263,9 +253,10 @@ export default function ProfileBottom({ userId, userLogin }) {
                     <PostCard
                       post={p}
                       variant="line"
-                      showDelete={activeTab === 'my'} // видаляти можна лише у «My posts»
-                      adminDelete={false}             // користувацький API
-                      onDeleted={refetchMyPosts}       // перезавантажити список після видалення
+                      showEdit={activeTab === 'my'}   /* ← тільки в профілі власника */
+                      showDelete={activeTab === 'my'} /* ← і видалення також тут */
+                      adminDelete={false}
+                      onDeleted={refetchMyPosts}
                     />
                   </div>
                 ))}

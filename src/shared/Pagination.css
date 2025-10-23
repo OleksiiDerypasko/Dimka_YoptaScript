@@ -10,10 +10,14 @@
   height: 36px;
   padding: 0 12px;
   border-radius: 10px;
-  border: 1px solid #2a3040;
-  background: #0f131c;
-  color: #e5e7eb;
+  border: 1px solid var(--border); /* Змінено */
+  background: var(--bg-elev-1); /* Змінено */
+  color: var(--text); /* Змінено */
   cursor: pointer;
+  transition: border-color .15s ease; /* Додано */
+}
+.pg__btn:hover:not(:disabled) {
+  border-color: var(--accent); /* Додано */
 }
 .pg__btn:disabled { opacity: .5; cursor: not-allowed; }
 
@@ -29,15 +33,22 @@
   min-width: 36px;
   height: 36px;
   border-radius: 10px;
-  border: 1px solid #2a3040;
-  background: #0f131c;
-  color: #e5e7eb;
+  border: 1px solid var(--border); /* Змінено */
+  background: var(--bg-elev-1); /* Змінено */
+  color: var(--text); /* Змінено */
   cursor: pointer;
+  display: grid; /* Додано */
+  place-items: center; /* Додано */
+  padding: 0 6px; /* Додано */
+  transition: border-color .15s ease, background .15s ease, color .15s ease; /* Додано */
+}
+.pg__page:hover:not(.is-active) {
+  border-color: var(--accent); /* Додано */
 }
 .pg__page.is-active {
-  background: #3b82f6;
-  border-color: #3b82f6;
-  color: #fff;
+  background: var(--button-bg); /* Змінено (на зелений) */
+  border-color: var(--accent); /* Змінено (на зелений) */
+  color: var(--button-text); /* Змінено (для контрасту) */
   font-weight: 800;
 }
 
@@ -46,5 +57,5 @@
   height: 36px;
   display: grid;
   place-items: center;
-  color: #9aa6bd;
+  color: var(--text-subtle); /* Змінено */
 }

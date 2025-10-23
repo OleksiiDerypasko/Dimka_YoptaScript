@@ -1,5 +1,3 @@
-// src/features/posts/api.js
-
 // ======================== helpers ========================
 function toQuery(params = {}) {
   const sp = new URLSearchParams();
@@ -13,11 +11,11 @@ function toQuery(params = {}) {
 }
 
 const baseOpts = {
-  headers: { Accept: 'application/json', 'Cache-Control': 'no-cache' },
+  headers: { Accept: 'application/json', 'Cache-Control': 'no-store' },
   cache: 'no-store',
 };
 
-// ========================= Posts =========================
+// ========================= Public posts =========================
 export async function fetchPostsApi(params = {}) {
   const { match, ...rest } = params;
 
@@ -82,7 +80,7 @@ export async function setPostReactionApi(id, type, token) {
     headers: {
       'Content-Type': 'application/json',
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      'Cache-Control': 'no-cache',
+      'Cache-Control': 'no-store',
     },
     cache: 'no-store',
     body: JSON.stringify({ type }),
@@ -99,7 +97,7 @@ export async function clearPostReactionApi(id, token) {
     method: 'DELETE',
     headers: {
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      'Cache-Control': 'no-cache',
+      'Cache-Control': 'no-store',
     },
     cache: 'no-store',
   });
@@ -107,7 +105,7 @@ export async function clearPostReactionApi(id, token) {
   return true;
 }
 
-/* ===================== Категорії ===================== */
+/* ===================== Categories ===================== */
 export async function listCategoriesApi() {
   const res = await fetch(`/api/categories`, { ...baseOpts });
   if (!res.ok) {
@@ -123,14 +121,14 @@ export async function getCategoryPostsApi(categoryId) {
   return res.json();
 }
 
-/* ============ Створення / Оновлення / Видалення поста ============ */
+/* ============ CRUD Post ============ */
 export async function createPostApi(body, token) {
   const res = await fetch(`/api/posts`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      'Cache-Control': 'no-cache',
+      'Cache-Control': 'no-store',
     },
     cache: 'no-store',
     body: JSON.stringify(body),
@@ -148,7 +146,7 @@ export async function updatePostApi(id, body, token) {
     headers: {
       'Content-Type': 'application/json',
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      'Cache-Control': 'no-cache',
+      'Cache-Control': 'no-store',
     },
     cache: 'no-store',
     body: JSON.stringify(body),
@@ -160,13 +158,12 @@ export async function updatePostApi(id, body, token) {
   return res.json();
 }
 
-/** Видалення поста власником */
 export async function deletePostApi(id, token) {
   const res = await fetch(`/api/posts/${id}`, {
     method: 'DELETE',
     headers: {
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      'Cache-Control': 'no-cache',
+      'Cache-Control': 'no-store',
     },
     cache: 'no-store',
   });
@@ -177,13 +174,12 @@ export async function deletePostApi(id, token) {
   return true;
 }
 
-/** Видалення поста адміністратором */
 export async function adminDeletePostApi(id, token) {
   const res = await fetch(`/api/admin/posts/${id}`, {
     method: 'DELETE',
     headers: {
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      'Cache-Control': 'no-cache',
+      'Cache-Control': 'no-store',
     },
     cache: 'no-store',
   });
@@ -193,3 +189,75 @@ export async function adminDeletePostApi(id, token) {
   }
   return true;
 }
+
+/** NEW: Admin — toggle post status */
+export async function adminSetPostStatusApi(id, status, token) {
+  const res = await fetch(`/api/admin/posts/${id}/status`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      'Cache-Control': 'no-store',
+    },
+    cache: 'no-store',
+    body: JSON.stringify({ status }), // 'active' | 'inactive'
+  });
+  const text = await res.text();
+  let data = null;
+  try { data = text ? JSON.parse(text) : null; } catch { data = text || null; }
+  if (!res.ok) {
+    const err = (data && typeof data === 'object') ? data : { error: res.statusText, status: res.status, data };
+    throw new Error(err?.error || `HTTP ${res.status}`);
+  }
+  return data;
+}
+
+export async function adminListPostsApi(params = {}, token) {
+  const page   = Number(params.page) >= 1 ? Number(params.page) : 1;
+  const limit  = Math.max(1, Math.min(100, Number(params.limit) || 10));
+  const sort   = params.sort === 'date' ? 'date' : 'likes';
+  const order  = params.order === 'asc' ? 'asc' : 'desc';
+
+  const q = new URLSearchParams({ page, limit, sort, order }).toString();
+  const url = q ? `/api/admin/posts?${q}` : `/api/admin/posts`;
+
+  const res = await fetch(url, {
+    method: 'GET',
+    headers: {
+      Accept: 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      'Cache-Control': 'no-store',
+    },
+    cache: 'no-store',
+  });
+
+  const text = await res.text();
+  let data = null;
+  try { data = text ? JSON.parse(text) : null; } catch { data = text || null; }
+
+  if (!res.ok) {
+    const e = (data && typeof data === 'object') ? data : { error: res.statusText };
+    throw new Error(e?.error || `HTTP ${res.status}`);
+  }
+
+  // Якщо бек віддав масив — загортаємо у пагінований формат
+  if (Array.isArray(data)) {
+    return {
+      total: data.length,
+      page: 1,
+      limit: data.length,
+      items: data,
+    };
+  }
+
+  // Інакше очікуємо звичний { total, page, limit, items }
+  const items = Array.isArray(data?.items) ? data.items : [];
+  return {
+    total: Number(data?.total ?? items.length),
+    page: Number(data?.page ?? page),
+    limit: Number(data?.limit ?? limit),
+    items,
+  };
+}
+
+

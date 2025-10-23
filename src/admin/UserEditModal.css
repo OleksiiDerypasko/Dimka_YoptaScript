@@ -1,4 +1,4 @@
-/* ===== User Edit modal (dark) ===== */
+/* ===== User Edit modal (dark) - GREEN THEME ===== */
 
 .ue__form {
   display: flex;
@@ -29,7 +29,8 @@
 }
 
 .ue__label {
-  color: #94a3b8;
+  /* Змінено: колір на приглушений текст */
+  color: var(--text-muted);
   font-size: 13px;
 }
 
@@ -37,10 +38,13 @@
 .ue__input {
   width: 100%;
   height: 44px;
-  border-radius: 14px;
-  border: 1px solid #334155;
-  background: #0b1220;
-  color: #e5e7eb;
+  border-radius: var(--radius-sm); /* Використовуємо токен радіуса */
+  /* Змінено: рамка на колір рамки */
+  border: 1px solid var(--border);
+  /* Змінено: фон на основний фон */
+  background: var(--bg-main);
+  /* Змінено: колір тексту на основний */
+  color: var(--text);
   padding: 0 14px;
   font-size: 14px;
   box-sizing: border-box;
@@ -48,21 +52,24 @@
 
 .ue__input:focus {
   outline: none;
-  border-color: #6366f1;
+  /* Змінено: рамка на акцентний (зелений) */
+  border-color: var(--accent);
 }
 
 /* Красивий селект зі стрілкою */
 .ue__select {
   appearance: none;
   padding-right: 36px;
-  background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%2390a4f7' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E");
+  /* Змінено: колір SVG стрілки на зелений (brand-400) */
+  background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%234ade80' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 12px center;
 }
 
 /* Помилка */
 .ue__error {
-  color: #ef4444;
+  /* Змінено: колір на колір небезпеки */
+  color: var(--danger);
   font-size: 13px;
   padding-top: 2px;
 }
@@ -77,21 +84,35 @@
 .ue__btn {
   height: 40px;
   padding: 0 16px;
-  border-radius: 12px;
-  border: 1px solid #334155;
-  background: #0b1220;
-  color: #e5e7eb;
+  border-radius: var(--radius-sm);
+  /* Змінено: рамка на колір рамки */
+  border: 1px solid var(--border);
+  /* Змінено: фон на основний фон */
+  background: var(--bg-main);
+  /* Змінено: колір тексту на основний */
+  color: var(--text);
   cursor: pointer;
+  transition: background .15s ease;
 }
 
-.ue__btn:hover { background: #0f172a; }
+.ue__btn:hover {
+  /* Змінено: фон при наведенні на піднятий фон */
+  background: var(--bg-elev-1);
+}
 
 .ue__btn--primary {
-  border-color: #4f46e5;
-  background: #312e81;
-  color: #c7d2fe;
+  /* Змінено: рамка на акцентний (зелений) */
+  border-color: var(--accent);
+  /* Змінено: фон на акцентний (зелений) */
+  background: var(--accent);
+  /* Змінено: колір тексту на контрастний */
+  color: var(--accent-contrast);
 }
-.ue__btn--primary:hover { background: #3730a3; }
+.ue__btn--primary:hover {
+  /* Змінено: фон при наведенні на акцентний ховер */
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
+}
 
 /* ===== Адаптив ===== */
 @media (max-width: 860px) {

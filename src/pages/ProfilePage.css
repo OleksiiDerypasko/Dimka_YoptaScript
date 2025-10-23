@@ -7,24 +7,29 @@
 
 .profile-card {
   width: 100%;
-  background: #1c1a20;
-  border: 1px solid #2b2931;
-  border-radius: 24px;
+  /* Змінено: фон на фон картки */
+  background: var(--card-bg);
+  /* Змінено: рамка на колір рамки картки */
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-lg); /* Використовуємо токен радіуса */
   padding: 24px;
-  color: #f2f3f5;
+  /* Змінено: колір тексту на основний */
+  color: var(--text);
   display: grid;
   grid-template-columns: 200px 1fr;
   gap: 24px;
 }
-/* ... (всі стилі .avatarBox, .info, .stats, .actions, .btn і т.д. залишаються без змін) ... */
+/* ... (всі стилі .avatarBox, .info, .stats, .actions, .btn і т.d. залишаються без змін) ... */
 /* ─── Avatar ─── */
 .avatarBox {
   position: relative;
   width: 200px;
   height: 240px;
-  background: #121018;
-  border: 1px solid #2f2c38;
-  border-radius: 18px;
+  /* Змінено: фон на піднятий фон */
+  background: var(--bg-elev-1);
+  /* Змінено: рамка на колір рамки картки */
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-md); /* Використовуємо токен радіуса */
   overflow: hidden;
   display: flex;
   align-items: center;
@@ -44,8 +49,10 @@
   justify-content: center;
   font-weight: 800;
   font-size: 54px;
-  color: #c7d2fe;
-  background: #20202a;
+  /* Змінено: колір на зелений відтінок */
+  color: var(--brand-300);
+  /* Змінено: фон на інший піднятий фон */
+  background: var(--bg-elev-1);
 }
 .avatarEditBtn {
   position: absolute;
@@ -54,9 +61,12 @@
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  border: 1px solid #ffffff26;
-  background: rgba(28, 28, 34, 0.75);
-  color: #eef2ff;
+  /* Змінено: рамка на прозорий основний колір */
+  border: 1px solid var(--text);
+  /* Змінено: фон на напівпрозорий фон картки */
+  background: rgba(var(--brand-600-rgb) / 0.75);
+  /* Змінено: колір на контрастний до акценту */
+  color: var(--accent-contrast);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -67,8 +77,10 @@
   transition: background .15s ease, border-color .15s ease;
 }
 .avatarEditBtn:hover {
-  background: rgba(46, 46, 58, 0.9);
-  border-color: #ffffff40;
+  /* Змінено: фон при наведенні на інший напівпрозорий зелений */
+  background: rgba(var(--brand-700-rgb) / 0.9);
+  /* Змінено: рамка на прозоріший основний колір */
+  border-color: var(--text);
 }
 /* ─── Right info ─── */
 .info { display: grid; gap: 14px; }
@@ -87,16 +99,20 @@
   margin: 0;
   font-size: 26px;
   font-weight: 800;
-  color: #ffffff;
+  /* Змінено: колір на основний текст */
+  color: var(--text);
   letter-spacing: .2px;
 }
 .editBtn {
   height: 34px;
   padding: 0 12px;
-  border-radius: 10px;
-  border: 1px solid #334155;
-  background: #23232b;
-  color: #e5e7eb;
+  border-radius: var(--radius-sm); /* Використовуємо токен радіуса */
+  /* Змінено: рамка на колір рамки */
+  border: 1px solid var(--border);
+  /* Змінено: фон на піднятий фон */
+  background: var(--bg-elev-1);
+  /* Змінено: колір тексту на основний */
+  color: var(--text);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -104,19 +120,28 @@
   cursor: pointer;
   transition: background .15s ease, border-color .15s ease, transform .05s ease;
 }
-.editBtn:hover { background: #2e2e38; border-color: #465569; }
+.editBtn:hover {
+  /* Змінено: фон при наведенні на фон картки */
+  background: var(--card-bg);
+  /* Змінено: рамка на колір акценту */
+  border-color: var(--accent);
+}
 .editBtn:active { transform: translateY(1px); }
 .label {
-  color: #aeb3c0;
+  /* Змінено: колір на приглушений текст */
+  color: var(--text-muted);
   font-size: 13px;
   letter-spacing: .3px;
 }
 .value {
-  background: #14131a;
-  border: 1px solid #2b2931;
-  border-radius: 12px;
+  /* Змінено: фон на основний фон */
+  background: var(--bg-main);
+  /* Змінено: рамка на колір рамки картки */
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-sm);
   padding: 10px 12px;
-  color: #f1f5f9;
+  /* Змінено: колір тексту на основний */
+  color: var(--text);
   min-height: 40px;
   display: flex;
   align-items: center;
@@ -129,13 +154,23 @@
   margin-top: 6px;
 }
 .stat {
-  background: #14131a;
-  border: 1px solid #2b2931;
-  border-radius: 12px;
+  /* Змінено: фон на основний фон */
+  background: var(--bg-main);
+  /* Змінено: рамка на колір рамки картки */
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-sm);
   padding: 10px 12px;
 }
-.stat__label { color: #aeb3c0; font-size: 12px; margin-bottom: 4px; }
-.stat__val   { font-weight: 800; font-size: 18px; }
+.stat__label {
+  /* Змінено: колір на приглушений текст */
+  color: var(--text-muted);
+  font-size: 12px;
+  margin-bottom: 4px;
+}
+.stat__val   {
+  font-weight: 800;
+  font-size: 18px;
+}
 /* Actions */
 .actions {
   display: flex;
@@ -145,7 +180,7 @@
 .btn {
   height: 40px;
   padding: 0 14px;
-  border-radius: 12px;
+  border-radius: var(--radius-sm);
   border: 1px solid transparent;
   font-weight: 700;
   cursor: pointer;
@@ -155,14 +190,29 @@
   cursor: not-allowed;
 }
 .btn--primary {
-  background: #2b6cb0;
-  border-color: #2b6cb0;
-  color: #fff;
+  /* Змінено: фон на акцентний зелений */
+  background: var(--accent);
+  /* Змінено: рамка на акцентний зелений */
+  border-color: var(--accent);
+  /* Змінено: колір тексту на контрастний до акценту */
+  color: var(--accent-contrast);
+}
+.btn--primary:hover {
+  /* Змінено: фон при наведенні на акцентний ховер */
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
 }
 .btn--danger {
-  background: #6b1d1d;
-  border-color: #8b1f1f;
+  /* Змінено: фон на колір небезпеки */
+  background: var(--danger);
+  /* Змінено: рамка на колір небезпеки */
+  border-color: var(--danger);
   color: #fff;
+}
+.btn--danger:hover {
+  /* Змінено: фон при наведенні на колір небезпеки ховер */
+  background: var(--danger-hover);
+  border-color: var(--danger-hover);
 }
 /* Responsive */
 @media (max-width: 800px) {
@@ -201,13 +251,36 @@
 /* Однакова “картковість” для обох блоків */
 .profile-card,
 .profile-right .pb-panel {
-  background: #171a22;
-  border: 1px solid #2a3040;
-  border-radius: 16px;
+  /* Змінено: фон на піднятий фон */
+  background: var(--bg-elev-1);
+  /* Змінено: рамка на колір рамки картки */
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-lg);
   padding: 20px;
-  color: #e5e7eb;
-  box-shadow: 0 8px 26px rgba(0,0,0,.35);
+  /* Змінено: колір тексту на основний */
+  color: var(--text);
+  /* Змінено: тінь на токен тіні */
+  box-shadow: var(--shadow-1);
 }
 
 /* Щоб не було “зсуву” праворуч */
 .profile-right .pb-panel { padding-top: 16px; }
+
+/* додаємо використання значків статусу з PostCard.css */
+.postpage__titleRow{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+}
+.postpage__status{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+.comment__moder{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin:4px 0 6px;
+}

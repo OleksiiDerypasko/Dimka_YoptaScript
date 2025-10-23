@@ -1,6 +1,6 @@
 // src/search/commands.js
 export const ALL_COMMANDS = [
-  // ── Навігація
+  // ── Navigation
   {
     id: 'goto-home',
     title: 'Go to Home',
@@ -10,36 +10,36 @@ export const ALL_COMMANDS = [
   },
   {
     id: 'goto-profile',
-    title: 'Мій Профіль',
+    title: 'My Profile', // Змінено
     group: 'Navigation',
-    keywords: ['акаунт', 'я', 'моя сторінка', 'profile', 'account'],
+    keywords: ['profile', 'account', 'me', 'my page'], // Змінено
     action: (navigate) => navigate('/profile'),
   },
 
-  // ── Профіль
+  // ── Profile
   {
     id: 'edit-name',
-    title: 'Змінити Ім’я',
+    title: 'Edit Name', // Змінено
     group: 'Profile',
-    keywords: ['редагувати', 'імя', 'повне', 'name', 'edit'],
+    keywords: ['edit', 'name', 'full', 'rename', 'update name'], // Змінено
     action: (navigate) => navigate('/profile?modal=edit-name'),
   },
   {
     id: 'change-password',
-    title: 'Змінити Пароль',
+    title: 'Change Password', // Змінено
     group: 'Security',
-    keywords: ['пароль', 'безпека', 'захист', 'password', 'security'],
+    keywords: ['password', 'security', 'protection', 'auth', 'update password'], // Змінено
     action: (navigate) => navigate('/profile?modal=change-password'),
   },
   {
     id: 'change-avatar',
-    title: 'Змінити Аватар',
+    title: 'Change Avatar', // Змінено
     group: 'Profile',
-    keywords: ['avatar', 'photo', 'зображення', 'картинка', 'picture'],
+    keywords: ['avatar', 'photo', 'image', 'picture', 'upload', 'profile picture'], // Змінено
     action: (navigate) => navigate('/profile?modal=change-avatar'),
   },
 
-  // ── Auth (на майбутнє теж корисно)
+  // ── Auth (useful for the future too)
   {
     id: 'goto-login',
     title: 'Login page',

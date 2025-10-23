@@ -9,10 +9,10 @@
 .epg__card {
   width: 100%;
   max-width: 760px;
-  border: 1px solid var(--card-border, #242b39);
+  border: 1px solid var(--card-border); /* Змінено */
   border-radius: 16px;
-  background: var(--bg-elev, #151922);
-  color: var(--text, #e5e7eb);
+  background: var(--card-bg); /* Змінено */
+  color: var(--text); /* Змінено */
   padding: 20px 22px;
   display: grid;
   gap: 14px;
@@ -20,49 +20,64 @@
 
 .epg__title { margin: 0 0 4px; font-size: 22px; font-weight: 700; }
 .epg__field { display: grid; gap: 6px; }
-.epg__label { color: var(--text-dim, #9aa6b2); font-size: 13px; }
+.epg__label { color: var(--text-muted); font-size: 13px; } /* Змінено */
 
 .epg__input, .epg__textarea {
   width: 100%;
-  border: 1px solid var(--card-border, #242b39);
+  border: 1px solid var(--border); /* Змінено */
   border-radius: 12px;
-  background: var(--bg, #0f1420);
-  color: var(--text, #e5e7eb);
+  background: var(--bg-main); /* Змінено */
+  color: var(--text); /* Змінено */
   padding: 10px 12px;
   outline: none;
+  transition: border-color .15s, box-shadow .15s; /* Додано */
 }
 .epg__input:focus, .epg__textarea:focus {
-  border-color: var(--accent-weak, #3b82f6);
-  box-shadow: 0 0 0 3px rgba(59,130,246,.15);
+  border-color: var(--accent); /* Змінено (на зелений) */
+  box-shadow: 0 0 0 3px rgba(var(--brand-600-rgb), .18); /* Змінено (на зелений) */
 }
 
 .epg__cats { display: flex; flex-wrap: wrap; gap: 8px; }
 .epg__chip {
   display: inline-flex; align-items: center; gap: 8px;
-  border: 1px solid var(--card-border, #242b39);
+  border: 1px solid var(--border); /* Змінено */
   border-radius: 999px; padding: 6px 12px;
   cursor: pointer; user-select: none;
-  background: var(--bg, #0f1420); color: var(--text, #e5e7eb);
+  background: var(--bg-main); /* Змінено */
+  color: var(--text); /* Змінено */
   transition: border-color .15s, background .15s;
 }
 .epg__chip input { display: none; }
-.epg__chip:hover { border-color: var(--accent-weak, #3b82f6); }
-.epg__chip.is-active { background: #1e293b; border-color: var(--accent-weak, #3b82f6); }
+.epg__chip:hover { border-color: var(--accent); } /* Змінено (на зелений) */
+.epg__chip.is-active {
+  background: rgba(var(--brand-600-rgb) / .25); /* Змінено (на зелений) */
+  border-color: var(--accent); /* Змінено (на зелений) */
+}
 
-.epg__hint { color: var(--text-dim, #9aa6b2); font-size: 12px; }
-.epg__err  { color: #ef4444; font-size: 13px; }
+.epg__hint { color: var(--text-muted); font-size: 12px; } /* Змінено */
+.epg__err  { color: var(--danger); font-size: 13px; } /* Змінено */
 
 .epg__actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 6px; }
 .epg-btn {
-  border: 1px solid var(--card-border, #242b39);
+  border: 1px solid var(--border); /* Змінено */
   border-radius: 10px;
-  background: var(--bg-elev, #151922);
-  color: var(--text, #e5e7eb);
+  background: var(--bg-elev-1); /* Змінено */
+  color: var(--text); /* Змінено */
   padding: 8px 14px; cursor: pointer;
+  transition: border-color .15s, background .15s; /* Додано */
 }
-.epg-btn:hover { border-color: var(--accent-weak, #3b82f6); }
+.epg-btn:hover:not(:disabled) { border-color: var(--accent); } /* Змінено (на зелений) */
 .epg-btn:disabled { opacity: .6; cursor: not-allowed; }
-.epg-btn--primary { background: #1e293b; border-color: var(--accent-weak, #3b82f6); }
+.epg-btn--primary {
+  background: var(--button-bg); /* Змінено (на зелений) */
+  border-color: var(--accent); /* Змінено (на зелений) */
+  color: var(--button-text); /* Додано */
+  font-weight: 600; /* Додано */
+}
+.epg-btn--primary:hover:not(:disabled) {
+  background: var(--button-bg-hover);
+  border-color: var(--accent-hover);
+}
 
-.epg__state { color: var(--text-dim, #9aa6b2); }
-.epg__state--err { color: #ef4444; }
+.epg__state { color: var(--text-muted); } /* Змінено */
+.epg__state--err { color: var(--danger); } /* Змінено */

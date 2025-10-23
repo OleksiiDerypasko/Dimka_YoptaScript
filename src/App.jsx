@@ -9,10 +9,9 @@ import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import NotFoundPage from './pages/NotFoundPage';
 import PostDetailsPage from './pages/PostDetailsPage';
-import CreatePostPage from './pages/CreatePostPage'; 
-// src/App.jsx
+import CreatePostPage from './pages/CreatePostPage';
 import EditPostPage from './pages/EditPostPage';
-
+import ResetPasswordPage from './pages/ResetPasswordPage'; // ⬅️ ДОДАНО
 
 import { restoreSession } from './features/auth/actions';
 
@@ -20,7 +19,7 @@ export default function App() {
   const dispatch = useDispatch();
 
   useEffect(() => {
-    dispatch(restoreSession()); // ← один виклик після монтування
+    dispatch(restoreSession());
   }, [dispatch]);
 
   return (
@@ -31,12 +30,13 @@ export default function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
-          <Route path="*" element={<NotFoundPage />} />
-          <Route path="/posts/:id" element={<PostDetailsPage />} /> 
+          <Route path="/posts/:id" element={<PostDetailsPage />} />
           <Route path="/post/:id" element={<PostDetailsPage />} />
-          <Route path="/profile" element={<ProfilePage />} /> {/* ← додано */}
+          <Route path="/profile" element={<ProfilePage />} />
           <Route path="/posts/new" element={<CreatePostPage />} />
           <Route path="/posts/:id/edit" element={<EditPostPage />} />
+          <Route path="/reset/:token" element={<ResetPasswordPage />} /> {/* ⬅️ НОВИЙ РОУТ */}
+          <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </main>
     </div>

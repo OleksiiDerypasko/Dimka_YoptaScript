@@ -2,16 +2,21 @@
 import React, { useEffect, useRef, useState } from 'react';
 import './ProfilePage.css';
 import { useSelector, useDispatch } from 'react-redux';
-import { selectAuthUser, selectAuthToken } from '../features/auth/selectors';
+import { selectAuthUser } from '../features/auth/selectors';
 import Modal from '../shared/ui/Modal';
-import { updateUserApi, updateAvatarApi } from '../features/users/api';
+import { updateUserApi, updateAvatarApi, deleteUserApi } from '../features/users/api';
 import { setUser } from '../features/auth/actions';
 import ProfileBottom from './profile/ProfileBottom';
 import { useLocation, useNavigate } from 'react-router-dom';
 
+// Статистика
+import { fetchPostsApi, getPostCommentsApi } from '../features/posts/api';
+
+// Запит на reset пароля
+import { requestPasswordResetApi } from '../features/auth/api';
+
 export default function ProfilePage() {
-  const user = useSelector(selectAuthUser);
-  const token = useSelector(selectAuthToken);
+  const user  = useSelector(selectAuthUser);
   const dispatch = useDispatch();
 
   const navigate = useNavigate();
@@ -21,26 +26,39 @@ export default function ProfilePage() {
   const login     = user?.login  || 'login';
   const email     = user?.email  || 'user@example.com';
   const avatarUrl = user?.avatarUrl || null;
-  const stats = { likes: 0, dislikes: 0, comments: 0, rating: user?.rating ?? 0 };
 
-  // модалки
+  // ── Статистика
+  const [stats, setStats] = useState({
+    likes: 0,
+    dislikes: 0,
+    comments: 0,
+    rating: user?.rating ?? 0,
+  });
+  const [statsLoading, setStatsLoading] = useState(false);
+  const [statsError, setStatsError] = useState(null);
+
+  // Модалки
   const [openName, setOpenName] = useState(false);
-  const [openPassword, setOpenPassword] = useState(false); // поки без бекенд-функціоналу
+  const [openPassword, setOpenPassword] = useState(false); // лишаємо для сумісності URL (?modal=change-password)
   const [openAvatar, setOpenAvatar] = useState(false);
 
-  // локальні форми
+  // Форми
   const [fullName, setFullName] = useState(fullName0);
   const [savingName, setSavingName] = useState(false);
 
   const fileRef = useRef(null);
   const [uploading, setUploading] = useState(false);
 
-  // коли змінюється користувач — синхронізуємо displayed name
+  // Видалення акаунта
+  const [deleting, setDeleting] = useState(false);
+
+  // sync displayed name/rating
   useEffect(() => {
     setFullName(user?.fullName || user?.login || 'User');
-  }, [user?.fullName, user?.login]);
+    setStats((s) => ({ ...s, rating: user?.rating ?? 0 }));
+  }, [user?.fullName, user?.login, user?.rating]);
 
-  // Відкривати модалки за ?modal=...
+  // Автовідкриття модалок через ?modal=...
   useEffect(() => {
     const sp = new URLSearchParams(search);
     const modal = sp.get('modal');
@@ -49,7 +67,6 @@ export default function ProfilePage() {
     if (modal === 'change-avatar') setOpenAvatar(true);
   }, [search]);
 
-  // допоміжне: прибрати ?modal= після закриття (опціонально, щоб url був чистіший)
   function clearModalParam() {
     const sp = new URLSearchParams(search);
     if (sp.has('modal')) {
@@ -58,7 +75,7 @@ export default function ProfilePage() {
     }
   }
 
-  // submit ІМЕНІ
+  // submit ІМЕНІ (оновлено під новий API)
   async function submitName(e) {
     e.preventDefault();
     if (!user?.id) return alert('No user id');
@@ -69,9 +86,8 @@ export default function ProfilePage() {
       const updated = await updateUserApi({
         id: user.id,
         data: { fullName },
-        token,
       });
-      dispatch(setUser(updated)); // оновлюємо користувача в Redux
+      dispatch(setUser(updated));
       setOpenName(false);
       clearModalParam();
     } catch (err) {
@@ -81,7 +97,7 @@ export default function ProfilePage() {
     }
   }
 
-  // submit АВАТАРКИ
+  // submit АВАТАРКИ (оновлено під новий API)
   async function submitAvatar(e) {
     e.preventDefault();
     const file = fileRef.current?.files?.[0];
@@ -89,7 +105,7 @@ export default function ProfilePage() {
 
     try {
       setUploading(true);
-      const { avatarUrl: newUrl } = await updateAvatarApi({ file, token });
+      const { avatarUrl: newUrl } = await updateAvatarApi({ file });
       dispatch(setUser({ ...(user || {}), avatarUrl: newUrl }));
       setOpenAvatar(false);
       clearModalParam();
@@ -98,6 +114,149 @@ export default function ProfilePage() {
       alert(err?.error || err?.message || 'Failed to upload avatar');
     } finally {
       setUploading(false);
+    }
+  }
+
+  // Допоміжна пагінація всіх постів
+  async function fetchAllPosts({ status = 'active', pageSize = 100 } = {}) {
+    let page = 1;
+    const all = [];
+    // по сторінках
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+      const data = await fetchPostsApi({
+        page,
+        limit: pageSize,
+        sort: 'likes',
+        order: 'desc',
+        status,
+      });
+      const items = Array.isArray(data?.items) ? data.items : [];
+      all.push(...items);
+      if (items.length < pageSize) break;
+      page += 1;
+      if (page > 20) break; // страховка
+    }
+    return all;
+  }
+
+  // Рахуємо коментарі з обмеженням паралельності
+  async function countCommentsWithConcurrency(postIds, concurrency = 5) {
+    let idx = 0;
+    let sum = 0;
+
+    async function worker() {
+      while (idx < postIds.length) {
+        const myIdx = idx++;
+        const id = postIds[myIdx];
+        try {
+          const list = await getPostCommentsApi(id);
+          sum += Array.isArray(list) ? list.length : 0;
+        } catch {
+          // ігноруємо помилки окремих постів
+        }
+      }
+    }
+
+    const workers = Array.from({ length: Math.min(concurrency, postIds.length) }, () => worker());
+    await Promise.all(workers);
+    return sum;
+  }
+
+  // Завантаження статистики
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadStats() {
+      if (!user?.id && !user?.login) return;
+
+      setStatsLoading(true);
+      setStatsError(null);
+      try {
+        const all = await fetchAllPosts({ status: 'active', pageSize: 100 });
+
+        const mine = all.filter(
+          (p) =>
+            (user?.id && p.authorId === user.id) ||
+            (user?.login && p.authorLogin === user.login)
+        );
+
+        const likes = mine.reduce((acc, p) => acc + (Number(p.likesCount) || 0), 0);
+        const dislikes = mine.reduce((acc, p) => acc + (Number(p.dislikesCount) || 0), 0);
+
+        let comments = 0;
+        const needFetchIds = [];
+        for (const p of mine) {
+          if (p.commentsCount != null) {
+            comments += Number(p.commentsCount) || 0;
+          } else {
+            needFetchIds.push(p.id);
+          }
+        }
+
+        if (needFetchIds.length > 0) {
+          const add = await countCommentsWithConcurrency(needFetchIds, 5);
+          comments += add;
+        }
+
+        if (!cancelled) {
+          setStats({ likes, dislikes, comments, rating: user?.rating ?? 0 });
+        }
+      } catch (e) {
+        if (!cancelled) {
+          setStatsError(e?.message || 'Failed to load stats');
+          setStats((s) => ({ ...s, likes: 0, dislikes: 0, comments: 0 }));
+        }
+      } finally {
+        if (!cancelled) setStatsLoading(false);
+      }
+    }
+
+    loadStats();
+    return () => { cancelled = true; };
+  }, [user?.id, user?.login]);
+
+  // Надіслати лист на зміну пароля
+  async function onSendPasswordReset() {
+    try {
+      if (!user?.email) {
+        alert('No e-mail bound to this account');
+        return;
+      }
+      await requestPasswordResetApi(user.email);
+      alert('Password reset request has been sent to your email.');
+    } catch (e) {
+      alert(e?.message || 'Failed to send password reset email');
+    }
+  }
+
+  // Видалення акаунта
+  async function onDeleteAccount() {
+    if (!user?.id) return;
+    const ok = window.confirm(
+      'Delete your account permanently?\n\nThis action cannot be undone.'
+    );
+    if (!ok) return;
+
+    try {
+      setDeleting(true);
+      await deleteUserApi(user.id);
+
+      // опціонально: stateless logout на беку (не обов’язково)
+      try { await fetch('/api/auth/logout', { method: 'POST' }); } catch {}
+
+      // чистимо локальну сесію
+      try { localStorage.clear(); sessionStorage.clear(); } catch {}
+
+      // скидаємо користувача у Redux
+      dispatch(setUser(null));
+
+      // редирект на логін
+      window.location.replace('/login');
+    } catch (e) {
+      alert(e?.error || e?.message || 'Failed to delete account');
+    } finally {
+      setDeleting(false);
     }
   }
 
@@ -162,18 +321,55 @@ export default function ProfilePage() {
             </div>
 
             <div className="stats">
-              <div className="stat"><div className="stat__label">Likes</div><div className="stat__val">{stats.likes}</div></div>
-              <div className="stat"><div className="stat__label">Comments</div><div className="stat__val">{stats.comments}</div></div>
-              <div className="stat"><div className="stat__label">Dislikes</div><div className="stat__val">{stats.dislikes}</div></div>
-              <div className="stat"><div className="stat__label">Rating</div><div className="stat__val">{stats.rating}</div></div>
+              <div className="stat">
+                <div className="stat__label">Likes</div>
+                <div className="stat__val">
+                  {statsLoading ? '…' : stats.likes}
+                </div>
+              </div>
+              <div className="stat">
+                <div className="stat__label">Comments</div>
+                <div className="stat__val">
+                  {statsLoading ? '…' : stats.comments}
+                </div>
+              </div>
+              <div className="stat">
+                <div className="stat__label">Dislikes</div>
+                <div className="stat__val">
+                  {statsLoading ? '…' : stats.dislikes}
+                </div>
+              </div>
+              <div className="stat">
+                <div className="stat__label">Rating</div>
+                <div className="stat__val">{stats.rating}</div>
+              </div>
             </div>
 
+            {statsError && (
+              <div
+                role="alert"
+                style={{ marginTop: 8, fontSize: 13, color: '#fda4af' }}
+              >
+                ⚠ {String(statsError)}
+              </div>
+            )}
+
             <div className="actions">
-              <button type="button" className="btn btn--primary" onClick={() => setOpenPassword(true)}>
+              <button
+                type="button"
+                className="btn btn--primary"
+                onClick={onSendPasswordReset}
+              >
                 Change password
               </button>
-              <button type="button" className="btn btn--danger" disabled>
-                Delete account
+              <button
+                type="button"
+                className="btn btn--danger"
+                onClick={onDeleteAccount}
+                disabled={deleting}
+                title="Delete account permanently"
+              >
+                {deleting ? 'Deleting…' : 'Delete account'}
               </button>
             </div>
           </section>
@@ -216,7 +412,7 @@ export default function ProfilePage() {
         </form>
       </Modal>
 
-      {/* Change Password (UI only) */}
+      {/* Change Password (UI only; залишено для сумісності) */}
       <Modal
         open={openPassword}
         onClose={() => { setOpenPassword(false); clearModalParam(); }}

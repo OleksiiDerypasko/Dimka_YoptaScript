@@ -7,21 +7,27 @@
 .modalBackdrop {
   position: absolute;
   inset: 0;
+  /* ВИПРАВЛЕНО: Повернено до нейтрального темного фону, як у оригіналі, щоб уникнути надмірної зелені */
   background: rgba(10, 12, 18, 0.65);
-  backdrop-filter: blur(2px);
+  backdrop-filter: blur(4px);
 }
 
 .modalCard {
   position: absolute;
   left: 50%;
   top: 50%;
+  /* Використовуємо токени радіуса та тіні */
   width: calc(100vw - 32px);
   transform: translate(-50%, -50%);
-  background: #17171d;
-  color: #f3f4f6;
-  border: 1px solid #2b2f3a;
-  border-radius: 16px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
+  /* Змінено: фон на фон картки (зелена тема) */
+  background: var(--card-bg);
+  /* Змінено: колір тексту на основний (зелена тема) */
+  color: var(--text);
+  /* Змінено: рамка на колір рамки картки (зелена тема) */
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-lg);
+  /* Змінено: тінь на токен тіні (зелена тема) */
+  box-shadow: var(--shadow-2);
   padding: 0;
 }
 
@@ -30,7 +36,8 @@
   align-items: center;
   justify-content: space-between;
   padding: 14px 16px;
-  border-bottom: 1px solid #252833;
+  /* Змінено: роздільник на колір рамки картки (зелена тема) */
+  border-bottom: 1px solid var(--card-border);
 }
 
 .modalTitle {
@@ -41,13 +48,20 @@
 .modalClose {
   width: 32px;
   height: 32px;
-  border-radius: 10px;
-  border: 1px solid #2b2f3a;
-  background: #1d1f27;
-  color: #e5e7eb;
+  border-radius: var(--radius-sm);
+  /* Змінено: рамка на колір рамки картки (зелена тема) */
+  border: 1px solid var(--card-border);
+  /* Змінено: фон на піднятий фон (зелена тема) */
+  background: var(--bg-elev-1);
+  /* Змінено: колір тексту на основний (зелена тема) */
+  color: var(--text);
   cursor: pointer;
+  transition: background .15s ease;
 }
-.modalClose:hover { background: #232633; }
+.modalClose:hover {
+  /* Змінено: фон при наведенні на інший піднятий фон (зелена тема) */
+  background: var(--bg-main);
+}
 
 .modalBody {
   padding: 16px;
@@ -56,25 +70,45 @@
 /* форми всередині модалки */
 .modalForm { display: grid; gap: 12px; }
 .modalRow { display: grid; gap: 6px; }
-.modalLabel { font-size: 12px; color: #aeb3c0; }
+.modalLabel {
+  font-size: 12px;
+  /* Змінено: колір на приглушений текст (зелена тема) */
+  color: var(--text-muted);
+}
 .modalInput,
 .modalFile {
   height: 40px;
-  border-radius: 10px;
-  border: 1px solid #2b2f3a;
-  background: #12131a;
-  color: #f3f4f6;
+  border-radius: var(--radius-sm);
+  /* Змінено: рамка на колір рамки картки (зелена тема) */
+  border: 1px solid var(--card-border);
+  /* Змінено: фон на основний фон (зелена тема) */
+  background: var(--bg-main);
+  /* Змінено: колір тексту на основний (зелена тема) */
+  color: var(--text);
   padding: 0 12px;
 }
 .modalTextarea {
   min-height: 90px;
-  border-radius: 10px;
-  border: 1px solid #2b2f3a;
-  background: #12131a;
-  color: #f3f4f6;
+  border-radius: var(--radius-sm);
+  /* Змінено: рамка на колір рамки картки (зелена тема) */
+  border: 1px solid var(--card-border);
+  /* Змінено: фон на основний фон (зелена тема) */
+  background: var(--bg-main);
+  /* Змінено: колір тексту на основний (зелена тема) */
+  color: var(--text);
   padding: 10px 12px;
   resize: vertical;
 }
+
+.modalInput:focus,
+.modalTextarea:focus {
+  /* Змінено: рамка на акцентний (зелений) */
+  border-color: var(--accent);
+  /* Змінено: тінь на зелену */
+  box-shadow: 0 0 0 3px rgba(var(--brand-600-rgb) / 0.15);
+  outline: none;
+}
+
 
 .modalActions {
   display: flex;
@@ -86,24 +120,40 @@
 .btn {
   height: 40px;
   padding: 0 16px;
-  border-radius: 10px;
+  border-radius: var(--radius-sm);
   border: 1px solid transparent;
   font-weight: 700;
   cursor: pointer;
+  transition: background .15s ease, border-color .15s ease, filter .15s ease;
 }
 .btn:disabled { opacity: .7; cursor: not-allowed; }
 
 .btn-secondary {
-  background: #22242d;
-  border-color: #2b2f3a;
-  color: #e5e7eb;
+  /* Змінено: фон на піднятий фон (зелена тема) */
+  background: var(--bg-elev-1);
+  /* Змінено: рамка на колір рамки картки (зелена тема) */
+  border-color: var(--card-border);
+  /* Змінено: колір тексту на основний (зелена тема) */
+  color: var(--text);
 }
-.btn-secondary:hover { background: #272a35; }
+.btn-secondary:hover {
+  /* Змінено: фон при наведенні на фон картки (зелена тема) */
+  background: var(--card-bg);
+}
 
 .btn-primary {
-  background: #4e7cff;
-  border-color: #4e7cff;
-  color: #fff;
-  box-shadow: 0 6px 18px rgba(78,124,255,.35);
+  /* Змінено: фон на акцентний (зелений) */
+  background: var(--accent);
+  /* Змінено: рамка на акцентний (зелений) */
+  border-color: var(--accent);
+  /* Змінено: колір тексту на контрастний (зелена тема) */
+  color: var(--accent-contrast);
+  /* Змінено: тінь на зелену */
+  box-shadow: 0 6px 18px rgba(var(--brand-600-rgb) / 0.35);
 }
-.btn-primary:hover { filter: brightness(1.05); }
+.btn-primary:hover {
+  /* Змінено: фон при наведенні на акцентний ховер (зелена тема) */
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
+  filter: none;
+}

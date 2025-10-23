@@ -43,3 +43,15 @@ export async function countPostComments(postId) {
   const list = await listPostComments(postId);
   return Array.isArray(list) ? list.length : 0;
 }
+
+// --- Admin: comments by post (всі статуси) ---
+export const adminListCommentsByPost = (postId) =>
+  apiGet(`/api/admin/comments`, { postId });
+
+// --- Admin: змінити статус коментаря ---
+export const adminSetCommentStatus = (commentId, status) =>
+  apiPatch(`/api/admin/comments/${commentId}/status`, { status });
+
+// --- User: змінити статус СВОГО коментаря ---
+export const setMyCommentStatus = (commentId, status) =>
+  apiPatch(`/api/comments/${commentId}`, { status });

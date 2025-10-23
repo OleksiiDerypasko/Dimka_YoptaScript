@@ -4,6 +4,9 @@ import { Provider } from 'react-redux';
 import { BrowserRouter } from 'react-router-dom';
 import App from './App';
 import store from './app/store'; // ← дефолтний імпорт (БЕЗ фігурних дужок)
+// src/index.js (або у файлі, який точно вантажиться першим)
+import './shared/styles/colors.css';
+
 
 const root = createRoot(document.getElementById('root'));
 root.render(
