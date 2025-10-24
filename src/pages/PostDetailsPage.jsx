@@ -20,6 +20,7 @@ import {
   listCommentReactions,
   likeComment,
   unlikeComment,
+  updatePostStatus, // ← ДОДАНО
 } from '../features/posts/postApi';
 
 // --- helpers ---
@@ -31,6 +32,12 @@ function normReaction(value) {
   return null;
 }
 
+function isSoftConflict(err) {
+  // бек може віддавати 400/409/422 на дубль-лайк/анлайк
+  const s = Number(err?.status);
+  return s === 400 || s === 409 || s === 422;
+}
+
 // Парсер "відповіді": префікс у контенті @<id> <продовження>
 function parseReplyAnchor(content = '') {
   const m = content.match(/^@(\d+)\s+/);
@@ -40,7 +47,7 @@ function parseReplyAnchor(content = '') {
   return { parentId, pure };
 }
 
-// Патч статусу коментаря (без нових бібліотек)
+// Патч статусу коментаря
 async function patchCommentStatus(commentId, status, token) {
   const res = await fetch(`/api/comments/${commentId}`, {
     method: 'PATCH',
@@ -50,6 +57,7 @@ async function patchCommentStatus(commentId, status, token) {
       Accept: 'application/json',
       'Cache-Control': 'no-store',
     },
+    cache: 'no-store',
     body: JSON.stringify({ status }), // 'active' | 'inactive'
   });
   const text = await res.text();
@@ -105,11 +113,15 @@ export default function PostDetailsPage() {
   const [myReaction, setMyReaction] = useState(null);
   const [reactionLoading, setReactionLoading] = useState(false);
 
-  // реакції для коментарів: { [commentId]: { likes, dislikes, myReaction, loading } }
+  // реакції для коментарів: { [commentId]: { likes, dislikes, myReaction, loading, initialized } }
   const [cRx, setCRx] = useState({});
 
   // кеш користувачів (публічний фетч /api/users/{id})
   const [userCache, setUserCache] = useState({}); // id -> user|null
+
+  // статус поста
+  const [postStatus, setPostStatus] = useState(statePost?.status ?? 'active');
+  const [statusSaving, setStatusSaving] = useState(false);
 
   const postId = useMemo(() => Number(id), [id]);
 
@@ -137,7 +149,10 @@ export default function PostDetailsPage() {
   useEffect(() => {
     let abort = false;
     (async () => {
-      if (statePost) return;
+      if (statePost) {
+        setPostStatus(statePost.status ?? 'active');
+        return;
+      }
       try {
         setLoading(true);
         const data = await getPostById(postId, token);
@@ -145,6 +160,7 @@ export default function PostDetailsPage() {
           setPost(data);
           setLikes(data.likesCount ?? 0);
           setDislikes(data.dislikesCount ?? 0);
+          setPostStatus(data.status ?? 'active');
         }
       } catch (e) {
         if (!abort) setError(e?.message || 'Failed to load post');
@@ -172,6 +188,70 @@ export default function PostDetailsPage() {
     return () => { abort = true; };
   }, [postId, token]);
 
+  // ↓ ДОДАЙ поруч із іншими useEffect, ПІСЛЯ того як формується comments/commentTree
+useEffect(() => {
+  // якщо нема коментарів або користувач не залогінений — нічого не робимо
+  if (!comments?.length || !me?.id) return;
+
+  let cancelled = false;
+
+  async function preloadMyCommentReactions(concurrency = 5) {
+    // збираємо унікальні id коментарів, для яких ми ще не знаємо myReaction
+    const targets = comments
+      .map(c => c.id)
+      .filter((cid) => {
+        const cell = cRx[cid];
+        return !cell || !cell.initialized; // ще не підвантажували
+      });
+
+    if (!targets.length) return;
+
+    let cursor = 0;
+
+    async function worker() {
+      while (cursor < targets.length && !cancelled) {
+        const myIdx = cursor++;
+        const cid = targets[myIdx];
+        try {
+          const list = await listCommentReactions(cid, token);
+          const likeCount = list.filter(x => normReaction(x.type) === 'like').length;
+          const dislikeCount = list.filter(x => normReaction(x.type) === 'dislike').length;
+          const mine = list.find(x => Number(x.authorId) === Number(me.id));
+          const myRx = normReaction(mine?.type);
+
+          if (!cancelled) {
+            setCRx(prev => ({
+              ...prev,
+              [cid]: {
+                likes: likeCount,
+                dislikes: dislikeCount,
+                myReaction: myRx,
+                loading: false,
+                initialized: true,
+              }
+            }));
+          }
+        } catch {
+          if (!cancelled) {
+            setCRx(prev => {
+              const cell = prev[cid] || { likes: 0, dislikes: 0, myReaction: null, loading: false };
+              return { ...prev, [cid]: { ...cell, initialized: true, loading: false } };
+            });
+          }
+        }
+      }
+    }
+
+    // запускаємо воркери
+    const n = Math.min(concurrency, targets.length);
+    await Promise.all(Array.from({ length: n }, () => worker()));
+  }
+
+  preloadMyCommentReactions(5);
+
+  return () => { cancelled = true; };
+}, [comments, me?.id, token]); // ← важливо
+
   // ===== Фаворити (початковий стан) =====
   useEffect(() => {
     let abort = false;
@@ -185,84 +265,81 @@ export default function PostDetailsPage() {
     return () => { abort = true; };
   }, [me?.id, token, postId]);
 
-// ---- побудова дерева з плоского списку
-const buildTree = useCallback((flat) => {
-  const normalized = (Array.isArray(flat) ? flat : []).map((c) => {
-    const { parentId, pure } = parseReplyAnchor(c.content || '');
-    return { ...c, parentId: parentId || null, pureContent: pure };
-  });
+  // ---- побудова дерева з плоского списку
+  const buildTree = useCallback((flat) => {
+    const normalized = (Array.isArray(flat) ? flat : []).map((c) => {
+      const { parentId, pure } = parseReplyAnchor(c.content || '');
+      return { ...c, parentId: parentId || null, pureContent: pure };
+    });
 
-  // ==== ADMIN: показуємо все, як є ====
-  if (isAdmin) {
-    const map = new Map(normalized.map((c) => [c.id, c]));
-    const roots = [];
-    const childrenByParent = new Map();
+    // ADMIN: показуємо все
+    if (isAdmin) {
+      const map = new Map(normalized.map((c) => [c.id, c]));
+      const roots = [];
+      const childrenByParent = new Map();
+      normalized.forEach((c) => {
+        const p = c.parentId;
+        if (p && map.has(p)) {
+          if (!childrenByParent.has(p)) childrenByParent.set(p, []);
+          childrenByParent.get(p).push(c);
+        } else {
+          roots.push(c);
+        }
+      });
+      const tree = roots.map((node) => ({
+        node,
+        replies: (childrenByParent.get(node.id) || []).sort(
+          (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+        ),
+      }));
+      return { normalized, tree };
+    }
+
+    // USER: тільки активні піддерева
+    const byId = new Map(normalized.map((c) => [c.id, c]));
+    const byParent = new Map();
     normalized.forEach((c) => {
+      if (!c.parentId) return;
+      if (!byParent.has(c.parentId)) byParent.set(c.parentId, []);
+      byParent.get(c.parentId).push(c);
+    });
+
+    function collectActiveSubtree(node, acc) {
+      const isActive = (node.status ?? 'active') === 'active';
+      if (!isActive) return;
+      acc.push(node);
+      const kids = byParent.get(node.id) || [];
+      kids.forEach((child) => collectActiveSubtree(child, acc));
+    }
+
+    const visible = [];
+    normalized.forEach((c) => {
+      const isRoot = !c.parentId || !byId.has(c.parentId);
+      if (isRoot) collectActiveSubtree(c, visible);
+    });
+
+    const map = new Map(visible.map((c) => [c.id, c]));
+    const roots = [];
+    const childrenByParent2 = new Map();
+    visible.forEach((c) => {
       const p = c.parentId;
       if (p && map.has(p)) {
-        if (!childrenByParent.has(p)) childrenByParent.set(p, []);
-        childrenByParent.get(p).push(c);
+        if (!childrenByParent2.has(p)) childrenByParent2.set(p, []);
+        childrenByParent2.get(p).push(c);
       } else {
         roots.push(c);
       }
     });
+
     const tree = roots.map((node) => ({
       node,
-      replies: (childrenByParent.get(node.id) || []).sort(
+      replies: (childrenByParent2.get(node.id) || []).sort(
         (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
       ),
     }));
-    return { normalized, tree };
-  }
 
-  // ==== USER: включаємо лише активні піддерева ====
-  // Якщо батько inactive — прибираємо всю його гілку (діти не «підстрибує» в корінь)
-  const byId = new Map(normalized.map((c) => [c.id, c]));
-  const byParent = new Map(); // parentId -> children[]
-  normalized.forEach((c) => {
-    if (!c.parentId) return;
-    if (!byParent.has(c.parentId)) byParent.set(c.parentId, []);
-    byParent.get(c.parentId).push(c);
-  });
-
-  function collectActiveSubtree(node, acc) {
-    const isActive = (node.status ?? 'active') === 'active';
-    if (!isActive) return; // обрізали всю гілку
-    acc.push(node);
-    const kids = byParent.get(node.id) || [];
-    kids.forEach((child) => collectActiveSubtree(child, acc));
-  }
-
-  // корені — ті, у кого немає parentId або parent відсутній у списку
-  const visible = [];
-  normalized.forEach((c) => {
-    const isRoot = !c.parentId || !byId.has(c.parentId);
-    if (isRoot) collectActiveSubtree(c, visible);
-  });
-
-  // тепер будуємо дерево лише з visible — сиріт більше не буде
-  const map = new Map(visible.map((c) => [c.id, c]));
-  const roots = [];
-  const childrenByParent2 = new Map();
-  visible.forEach((c) => {
-    const p = c.parentId;
-    if (p && map.has(p)) {
-      if (!childrenByParent2.has(p)) childrenByParent2.set(p, []);
-      childrenByParent2.get(p).push(c);
-    } else {
-      roots.push(c);
-    }
-  });
-
-  const tree = roots.map((node) => ({
-    node,
-    replies: (childrenByParent2.get(node.id) || []).sort(
-      (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
-    ),
-  }));
-
-  return { normalized: visible, tree };
-}, [isAdmin]);
+    return { normalized: visible, tree };
+  }, [isAdmin]);
 
   // ===== Коментарі: завантаження =====
   useEffect(() => {
@@ -273,15 +350,13 @@ const buildTree = useCallback((flat) => {
 
         let list = [];
         if (isAdmin) {
-          // Адмін бачить усі
           list = await listPostComments(postId, token);
         } else {
-          // Звичайний юзер: пробуємо спеціальний "публічний" ендпоїнт
-          // 1) ?status=active
+          // Публічний (active) + no-store
           let ok = false;
           try {
             const res = await fetch(`/api/posts/${postId}/comments?status=active`, {
-              headers: { Accept: 'application/json', 'Cache-Control': 'no-store' },
+              headers: { Accept: 'application/json', 'Cache-Control': 'no-store', Pragma: 'no-cache' },
               cache: 'no-store',
             });
             if (res.ok) {
@@ -289,8 +364,6 @@ const buildTree = useCallback((flat) => {
               ok = true;
             }
           } catch {}
-
-          // 2) fallback: звичайний список і фільтруємо на клієнті
           if (!ok) {
             const raw = await listPostComments(postId, token);
             list = Array.isArray(raw) ? raw.filter(c => (c.status ?? 'active') === 'active') : [];
@@ -324,7 +397,10 @@ const buildTree = useCallback((flat) => {
       if (userCache[uid] !== undefined) return; // вже в кеші (навіть null)
       (async () => {
         try {
-          const res = await fetch(`/api/users/${uid}`, { headers: { Accept: 'application/json' } });
+          const res = await fetch(`/api/users/${uid}`, {
+            headers: { Accept: 'application/json', 'Cache-Control': 'no-store', Pragma: 'no-cache' },
+            cache: 'no-store',
+          });
           if (res.ok) {
             const u = await res.json();
             setUserCache((prev) => ({ ...prev, [uid]: u }));
@@ -422,22 +498,39 @@ const buildTree = useCallback((flat) => {
       if (type === 'like') setLikes(v => Math.max(0, v - 1));
       else setDislikes(v => Math.max(0, v - 1));
       setMyReaction(null);
-      try { await unlikePost(postId, token); }
-      catch (e) {
-        setLikes(prev.likes); setDislikes(prev.dislikes); setMyReaction(prev.myReaction);
-        alert(e?.message || 'Failed to undo reaction');
-      } finally { setReactionLoading(false); refreshReactions(); }
+      try {
+        await unlikePost(postId, token);
+      } catch (e) {
+        // м’яко на дублях
+        if (isSoftConflict(e)) {
+          await refreshReactions();
+        } else {
+          setLikes(prev.likes); setDislikes(prev.dislikes); setMyReaction(prev.myReaction);
+          alert(e?.message || 'Failed to undo reaction');
+        }
+      } finally {
+        setReactionLoading(false);
+        await refreshReactions();
+      }
       return;
     }
 
     if (myReaction === null) {
       if (type === 'like') setLikes(v => v + 1); else setDislikes(v => v + 1);
       setMyReaction(type);
-      try { await likePost(postId, type, token); }
-      catch (e) {
-        setLikes(prev.likes); setDislikes(prev.dislikes); setMyReaction(prev.myReaction);
-        alert(e?.message || 'Failed to set reaction');
-      } finally { setReactionLoading(false); refreshReactions(); }
+      try {
+        await likePost(postId, type, token);
+      } catch (e) {
+        if (isSoftConflict(e)) {
+          await refreshReactions();
+        } else {
+          setLikes(prev.likes); setDislikes(prev.dislikes); setMyReaction(prev.myReaction);
+          alert(e?.message || 'Failed to set reaction');
+        }
+      } finally {
+        setReactionLoading(false);
+        await refreshReactions();
+      }
       return;
     }
 
@@ -445,11 +538,20 @@ const buildTree = useCallback((flat) => {
     if (myReaction === 'like') setLikes(v => Math.max(0, v - 1)); else setDislikes(v => Math.max(0, v - 1));
     if (type === 'like') setLikes(v => v + 1); else setDislikes(v => v + 1);
     setMyReaction(type);
-    try { await unlikePost(postId, token); await likePost(postId, type, token); }
-    catch (e) {
-      setLikes(prev.likes); setDislikes(prev.dislikes); setMyReaction(prev.myReaction);
-      alert(e?.message || 'Failed to switch reaction');
-    } finally { setReactionLoading(false); refreshReactions(); }
+    try {
+      await unlikePost(postId, token);
+      await likePost(postId, type, token);
+    } catch (e) {
+      if (isSoftConflict(e)) {
+        await refreshReactions();
+      } else {
+        setLikes(prev.likes); setDislikes(prev.dislikes); setMyReaction(prev.myReaction);
+        alert(e?.message || 'Failed to switch reaction');
+      }
+    } finally {
+      setReactionLoading(false);
+      await refreshReactions();
+    }
   }
 
   // ===== ДІЇ: Лайк/Дизлайк коментаря =====
@@ -473,10 +575,18 @@ const buildTree = useCallback((flat) => {
         const dislikes = type === 'dislike' ? Math.max(0, cell.dislikes - 1) : cell.dislikes;
         return { ...p, [cid]: { ...cell, likes, dislikes, myReaction: null } };
       });
-      try { await unlikeComment(cid, token); }
-      catch (e) {
-        setCRx((p) => ({ ...p, [cid]: prev })); alert(e?.message || 'Failed to undo reaction');
-      } finally { await ensureCommentMyReaction(cid); }
+      try {
+        await unlikeComment(cid, token);
+      } catch (e) {
+        if (isSoftConflict(e)) {
+          await ensureCommentMyReaction(cid);
+        } else {
+          setCRx((p) => ({ ...p, [cid]: prev }));
+          alert(e?.message || 'Failed to undo reaction');
+        }
+      } finally {
+        await ensureCommentMyReaction(cid);
+      }
       return;
     }
 
@@ -487,10 +597,18 @@ const buildTree = useCallback((flat) => {
         const dislikes = type === 'dislike' ? cell.dislikes + 1 : cell.dislikes;
         return { ...p, [cid]: { ...cell, likes, dislikes, myReaction: type } };
       });
-      try { await likeComment(cid, type, token); }
-      catch (e) {
-        setCRx((p) => ({ ...p, [cid]: prev })); alert(e?.message || 'Failed to set reaction');
-      } finally { await ensureCommentMyReaction(cid); }
+      try {
+        await likeComment(cid, type, token);
+      } catch (e) {
+        if (isSoftConflict(e)) {
+          await ensureCommentMyReaction(cid);
+        } else {
+          setCRx((p) => ({ ...p, [cid]: prev }));
+          alert(e?.message || 'Failed to set reaction');
+        }
+      } finally {
+        await ensureCommentMyReaction(cid);
+      }
       return;
     }
 
@@ -503,10 +621,19 @@ const buildTree = useCallback((flat) => {
       const dislikes2 = type === 'dislike' ? dislikes + 1 : dislikes;
       return { ...p, [cid]: { ...cell, likes: likes2, dislikes: dislikes2, myReaction: type } };
     });
-    try { await unlikeComment(cid, token); await likeComment(cid, type, token); }
-    catch (e) {
-      setCRx((p) => ({ ...p, [cid]: prev })); alert(e?.message || 'Failed to switch reaction');
-    } finally { await ensureCommentMyReaction(cid); }
+    try {
+      await unlikeComment(cid, token);
+      await likeComment(cid, type, token);
+    } catch (e) {
+      if (isSoftConflict(e)) {
+        await ensureCommentMyReaction(cid);
+      } else {
+        setCRx((p) => ({ ...p, [cid]: prev }));
+        alert(e?.message || 'Failed to switch reaction');
+      }
+    } finally {
+      await ensureCommentMyReaction(cid);
+    }
   }
 
   // ===== ДІЇ: Фаворити =====
@@ -536,8 +663,6 @@ const buildTree = useCallback((flat) => {
       const { parentId, pure } = parseReplyAnchor(created.content || '');
       const createdExt = { ...created, parentId: parentId || null, pureContent: pure };
 
-      // Якщо не адмін і хтось (не ти) створив неактивний коментар — з публічного API він би не прийшов.
-      // Але ми створюємо СВІЙ коментар — система робить його активним; додаємо в дерево:
       setComments((prev) => [createdExt, ...prev]);
       const { normalized, tree } = buildTree([createdExt, ...comments]);
       setComments(normalized);
@@ -594,9 +719,6 @@ const buildTree = useCallback((flat) => {
   async function onToggleCommentStatus(commentId, nextActive) {
     if (!token) { alert('Please login'); return; }
 
-    // Правила показу перемикача:
-    // - Адмін — завжди може;
-    // - Юзер — лише для СВОГО коментаря (перемикач малюємо тільки тоді).
     const target = comments.find(c => c.id === commentId);
     const canByRole = isAdmin || (me?.id && target && target.authorId === me.id);
     if (!canByRole) { alert('You cannot change this comment status'); return; }
@@ -606,26 +728,39 @@ const buildTree = useCallback((flat) => {
     // optimistic UI
     const before = comments;
     const after = before.map(c => c.id === commentId ? { ...c, status: newStatus } : c);
-    if (isAdmin) {
-      // Адмін бачить усі — не фільтруємо
-      const { normalized, tree } = buildTree(after);
-      setComments(normalized);
-      setCommentTree(tree);
-    } else {
-      // Юзер: показуємо тільки активні => якщо зробив неактивним — коментар зникне
-      const { normalized, tree } = buildTree(after);
-      setComments(normalized);
-      setCommentTree(tree);
-    }
+    const { normalized, tree } = buildTree(after);
+    setComments(normalized);
+    setCommentTree(tree);
 
     try {
       await patchCommentStatus(commentId, newStatus, token);
     } catch (e) {
-      // rollback
-      const { normalized, tree } = buildTree(before);
-      setComments(normalized);
-      setCommentTree(tree);
+      const rb = buildTree(before);
+      setComments(rb.normalized);
+      setCommentTree(rb.tree);
       alert(e?.message || 'Failed to change status');
+    }
+  }
+
+  // ===== ДІЇ: Зміна статусу ПОСТА (тільки адмін) =====
+  async function onTogglePostStatus(nextActive) {
+    if (!token) return alert('Please login');
+    if (!isAdmin) return alert('Only admin can change post status');
+
+    const prevStatus = postStatus;
+    const newStatus = nextActive ? 'active' : 'inactive';
+
+    try {
+      setStatusSaving(true);
+      setPostStatus(newStatus);                        // оптимістично
+      setPost((p) => (p ? { ...p, status: newStatus } : p));
+      await updatePostStatus(postId, newStatus);       // виклик API
+    } catch (e) {
+      setPostStatus(prevStatus);                       // rollback
+      setPost((p) => (p ? { ...p, status: prevStatus } : p));
+      alert(e?.message || 'Failed to update post status');
+    } finally {
+      setStatusSaving(false);
     }
   }
 
@@ -650,6 +785,21 @@ const buildTree = useCallback((flat) => {
             <span className="post-dot">•</span>
             <time className="post-date">{createdAt ? new Date(createdAt).toLocaleDateString() : ''}</time>
           </div>
+
+          {(isAdmin) && (
+            <div className="post-status-control">
+              <span className={`post-status-badge ${postStatus === 'active' ? 'is-ok' : 'is-off'}`}>
+                {postStatus}
+              </span>
+              <ToggleSwitch
+                checked={postStatus === 'active'}
+                onChange={(next) => onTogglePostStatus(next)}
+                disabled={statusSaving}
+                label="Post"
+                title="Admin: toggle post status"
+              />
+            </div>
+          )}
         </header>
 
         <section className="post-cats">
@@ -770,10 +920,6 @@ const buildTree = useCallback((flat) => {
                     title="Dislike"
                   >👎 {cell.dislikes}</button>
 
-                  {/* Статус/перемикач:
-                      - Адмін: бачить бейдж + перемикач завжди
-                      - Користувач: бейдж НЕ показуємо (щоб не було "неактивний"),
-                        але якщо коментар мій — показуємо перемикач */}
                   {(isAdmin || (me?.id && node.authorId === me.id)) && (
                     <>
                       {isAdmin && <span className="comment-dot">•</span>}

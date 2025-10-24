@@ -437,12 +437,12 @@
   transform: translateY(1px);
 }
 
+/* === ЦЕЙ БЛОК ВИДАЛЕНО ===
 .am-item--primary {
-  /* Змінено: фон на піднятий фон */
   background: var(--bg-elev-1);
-  /* Змінено: рамка на акцентний */
   border-color: var(--accent);
 }
+*/
 
 .am-ic {
   display: grid;
@@ -516,3 +516,4 @@
   /* Змінено: фон при наведенні на піднятий фон */
   background: var(--bg-elev-1);
 }
+

@@ -1,14 +1,19 @@
 // src/features/posts/postApi.js
-import { apiGet, apiPost, apiDelete } from '../../shared/lib/apiClient';
+import { apiGet, apiPost, apiDelete, apiPatch } from '../../shared/lib/apiClient';
 
 // ---- Posts ----
 export const getPostById = (id) => apiGet(`/api/posts/${id}`);
 export const getPostCategories = (id) => apiGet(`/api/posts/${id}/categories`);
 export const listPostComments = (id) => apiGet(`/api/posts/${id}/comments`);
 
+// --- Admin/Author: оновити статус поста (ми дозволяємо тільки адмінам у UI)
+export const updatePostStatus = (postId, status) =>
+  apiPatch(`/api/posts/${postId}`, { status }); // status: 'active' | 'inactive'
+
 // ---- Reactions (likes/dislikes) ----
-// GET список усіх реакцій до поста: [{ authorId, type: 'like'|'dislike', ... }]
-export const listPostReactions = (postId) => apiGet(`/api/posts/${postId}/like`);
+// Додаємо cache-buster як дублер до no-store
+export const listPostReactions = (postId) =>
+  apiGet(`/api/posts/${postId}/like`, { _: Date.now() });
 
 // Поставити реакцію (type: 'like' | 'dislike')
 export const likePost = (postId, type /* 'like'|'dislike' */) =>
@@ -20,23 +25,23 @@ export const unlikePost = (postId) => apiDelete(`/api/posts/${postId}/like`);
 // ---- Favorites ----
 export const addFavoritePost = (postId) => apiPost(`/api/posts/${postId}/favorite`);
 export const removeFavoritePost = (postId) => apiDelete(`/api/posts/${postId}/favorite`);
-export const listUserFavorites = (userId) => apiGet(`/api/users/${userId}/favorites`);
+export const listUserFavorites = (userId) => apiGet(`/api/users/${userId}/favorites`, { _: Date.now() });
 
 // ---- Comments ----
 export const createComment = (postId, content) =>
   apiPost(`/api/comments`, { postId, content });
 
-export const deleteComment = (commentId, _tokenIgnored) =>
+export const deleteComment = (commentId) =>
   apiDelete(`/api/comments/${commentId}`);
 
 // ---- Reactions (comments) ----
-export const listCommentReactions = (commentId, _tokenIgnored) =>
-  apiGet(`/api/comments/${commentId}/like`); // Array<Like> { authorId, type }
+export const listCommentReactions = (commentId) =>
+  apiGet(`/api/comments/${commentId}/like`, { _: Date.now() }); // Array<Like> { authorId, type }
 
-export const likeComment = (commentId, type, _tokenIgnored) =>
+export const likeComment = (commentId, type) =>
   apiPost(`/api/comments/${commentId}/like`, { type }); // {type: 'like'|'dislike'}
 
-export const unlikeComment = (commentId, _tokenIgnored) =>
+export const unlikeComment = (commentId) =>
   apiDelete(`/api/comments/${commentId}/like`);
 
 export async function countPostComments(postId) {
@@ -46,7 +51,7 @@ export async function countPostComments(postId) {
 
 // --- Admin: comments by post (всі статуси) ---
 export const adminListCommentsByPost = (postId) =>
-  apiGet(`/api/admin/comments`, { postId });
+  apiGet(`/api/admin/comments`, { postId, _: Date.now() });
 
 // --- Admin: змінити статус коментаря ---
 export const adminSetCommentStatus = (commentId, status) =>

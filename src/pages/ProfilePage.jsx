@@ -1,4 +1,3 @@
-// src/pages/ProfilePage.jsx
 import React, { useEffect, useRef, useState } from 'react';
 import './ProfilePage.css';
 import { useSelector, useDispatch } from 'react-redux';
@@ -48,6 +47,7 @@ export default function ProfilePage() {
 
   const fileRef = useRef(null);
   const [uploading, setUploading] = useState(false);
+  const [fileName, setFileName] = useState(''); // <-- 1. ДОДАНО STATE
 
   // Видалення акаунта
   const [deleting, setDeleting] = useState(false);
@@ -114,7 +114,14 @@ export default function ProfilePage() {
       alert(err?.error || err?.message || 'Failed to upload avatar');
     } finally {
       setUploading(false);
+      setFileName(''); // <-- 2. ОЧИЩЕНО ІМ'Я ФАЙЛУ
     }
+  }
+
+  // 3. ДОДАНО ОБРОБНИК
+  function handleFileChange(e) {
+    const file = e.target.files?.[0];
+    setFileName(file ? file.name : '');
   }
 
   // Допоміжна пагінація всіх постів
@@ -446,17 +453,39 @@ export default function ProfilePage() {
       {/* Change Avatar */}
       <Modal
         open={openAvatar}
-        onClose={() => { setOpenAvatar(false); clearModalParam(); }}
+        // 4. ОЧИЩЕНО ІМ'Я ФАЙЛУ ПРИ ЗАКРИТТІ
+        onClose={() => { setOpenAvatar(false); clearModalParam(); setFileName(''); }}
         title="Change avatar"
         width={520}
       >
         <form className="modalForm" onSubmit={submitAvatar}>
           <div className="modalRow">
             <label className="modalLabel" htmlFor="avatarFile">Select image</label>
-            <input id="avatarFile" className="modalFile" type="file" accept="image/*" ref={fileRef} />
+            
+            {/* === 5. ЗАМІНЕНО СТАРИЙ INPUT НА НОВИЙ БЛОК === */}
+            <div className="modalFile-wrapper">
+              <input 
+                id="avatarFile" 
+                className="modalFile-input" /* Це прихований інпут */
+                type="file" 
+                accept="image/*" 
+                ref={fileRef}
+                onChange={handleFileChange} /* Додано обробник */
+              />
+              {/* Це стилізована кнопка, яка активує інпут */}
+              <label htmlFor="avatarFile" className="modalFile-btn">
+                Browse...
+              </label>
+              {/* Тут відображається ім'я файлу */}
+              <span className={`modalFile-name ${fileName ? 'is-selected' : ''}`}>
+                {fileName || 'No file selected.'}
+              </span>
+            </div>
+            {/* === КІНЕЦЬ НОВОГО БЛОКУ === */}
+
           </div>
           <div className="modalActions">
-            <button type="button" className="btn btn-secondary" onClick={() => { setOpenAvatar(false); clearModalParam(); }}>
+            <button type="button" className="btn btn-secondary" onClick={() => { setOpenAvatar(false); clearModalParam(); setFileName(''); }}>
               Cancel
             </button>
             <button type="submit" className="btn btn-primary" disabled={uploading}>

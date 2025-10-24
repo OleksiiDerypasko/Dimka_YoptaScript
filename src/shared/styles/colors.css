@@ -25,6 +25,14 @@
   --danger-700: #b91c1c;
   --danger-500-rgb: 239 68 68;
 
+  /* Warning (Amber) */
+  --warning-500: #f59e0b; 
+  --warning-700: #b45309;
+
+  /* Info (Blue) */
+  --info-500: #3b82f6;
+  --info-700: #1d4ed8;
+
   /* Radius */
   --radius-sm: 8px;
   --radius-md: 10px;
@@ -65,6 +73,13 @@
   /* Status */
   --danger:       var(--danger-500);
   --danger-hover: var(--danger-700);
+  
+  --status-admin-text:    var(--warning-500);
+  --status-admin-border:  var(--warning-500);
+  --status-user-text:     var(--text-muted);
+  --status-user-border:   var(--border);
+  --status-verified-text:   var(--info-500);
+  --status-verified-border: var(--info-500);
 
   /* Specials */
   --post-inactive-bg: #18261f;
@@ -95,6 +110,13 @@
   --danger:       var(--danger-500);
   --danger-hover: var(--danger-700);
 
+  --status-admin-text:    var(--warning-700); /* (Трохи темніше для контрасту) */
+  --status-admin-border:  var(--warning-500);
+  --status-user-text:     var(--text-muted);
+  --status-user-border:   var(--border);
+  --status-verified-text:   var(--info-700); /* (Трохи темніше для контрасту) */
+  --status-verified-border: var(--info-500);
+
   --post-inactive-bg: #edf6f0;
 }
 
@@ -103,4 +125,8 @@
 .theme-light { color-scheme: light; background: var(--bg); }
 
 /* База для всього додатку */
-body { background: var(--bg); color: var(--text); }
+body { 
+  margin: 0;
+  background: var(--bg); 
+  color: var(--text); 
+}

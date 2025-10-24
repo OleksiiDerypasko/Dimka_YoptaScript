@@ -1,4 +1,3 @@
-// src/admin/UsersManagerModal.jsx
 import React, { useEffect, useMemo, useState } from 'react';
 import Modal from '../shared/ui/Modal';
 import {
@@ -50,6 +49,8 @@ export default function UsersManagerModal({ open, onClose }) {
 
   useEffect(() => {
     if (!open) return;
+    // При закритті/відкритті модалки скидаємо форму
+    setCreateOpen(false);
     refresh();
   }, [open]);
 
@@ -110,8 +111,9 @@ export default function UsersManagerModal({ open, onClose }) {
   return (
     <>
       <Modal open={open} onClose={onClose} title="Users Manager">
-        <div className="um">
-          {/* Toolbar */}
+        {/* === ЗМІНА ТУТ: Додано клас .is-creating === */}
+        <div className={`um ${createOpen ? 'is-creating' : ''}`}>
+          
           <div className="um__toolbar">
             <input
               className="um__search"
@@ -121,34 +123,43 @@ export default function UsersManagerModal({ open, onClose }) {
             />
 
             <div className="um__create">
-              {!createOpen ? (
-                <button
-                  className="um__btn um__btn--primary"
-                  type="button"
-                  onClick={() => setCreateOpen(true)}
-                >
-                  ➕ New user
-                </button>
-              ) : (
-                <form className="um__createForm" onSubmit={handleCreate}>
-                  <input className="um__input" placeholder="login" value={cLogin} onChange={(e)=>setCLogin(e.target.value)} />
-                  <input className="um__input" placeholder="email" type="email" value={cEmail} onChange={(e)=>setCEmail(e.target.value)} />
-                  <input className="um__input" placeholder="full name" value={cFull} onChange={(e)=>setCFull(e.target.value)} />
-                  <input className="um__input" placeholder="password" type="password" value={cPass} onChange={(e)=>setCPass(e.target.value)} />
-                  <select className="um__input" value={cRole} onChange={(e)=>setCRole(e.target.value)}>
-                    <option value="user">user</option>
-                    <option value="admin">admin</option>
-                  </select>
-                  <button className="um__btn um__btn--primary" type="submit" disabled={busyCreate}>
-                    {busyCreate ? 'Creating…' : 'Add'}
-                  </button>
-                  <button className="um__btn" type="button" onClick={() => setCreateOpen(false)}>
-                    Cancel
-                  </button>
-                </form>
-              )}
+              <button
+                className="um__btn um__btn--primary"
+                type="button"
+                onClick={() => setCreateOpen(true)}
+              >
+                ➕ New user
+              </button>
             </div>
           </div>
+
+          {/* === ЗМІНА ТУТ: Форма тепер не зникає, а ховається через CSS === */}
+          <form 
+            className={`um__createFormPanel ${createOpen ? 'is-open' : ''}`} 
+            onSubmit={handleCreate}
+            aria-hidden={!createOpen}
+          >
+            <div className="um__createGrid">
+              <input className="um__input" placeholder="login" value={cLogin} onChange={(e)=>setCLogin(e.target.value)} />
+              <input className="um__input" placeholder="email" type="email" value={cEmail} onChange={(e)=>setCEmail(e.target.value)} />
+              <input className="um__input" placeholder="full name" value={cFull} onChange={(e)=>setCFull(e.target.value)} />
+              <input className="um__input" placeholder="password" type="password" value={cPass} onChange={(e)=>setCPass(e.target.value)} />
+            </div>
+            <div className="um__createActions">
+              <select className="um__input" value={cRole} onChange={(e)=>setCRole(e.target.value)}>
+                <option value="user">user</option>
+                <option value="admin">admin</option>
+              </select>
+              <button className="um__btn um__btn--primary" type="submit" disabled={busyCreate}>
+                {busyCreate ? 'Creating…' : 'Add'}
+              </button>
+              <button className="um__btn" type="button" onClick={() => setCreateOpen(false)}>
+                Cancel
+              </button>
+            </div>
+          </form>
+          {/* === КІНЕЦЬ ЗМІНИ === */}
+
 
           {/* State */}
           {loading && <div className="um__state">Loading users…</div>}

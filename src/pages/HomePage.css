@@ -37,20 +37,20 @@
   position: relative;
 }
 
+/* === ЗМІНА 1: Властивості кнопки тепер успадковуються з групи нижче === */
 .filters__dd-btn {
   list-style: none;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
-  border-radius: 12px;
-  border: 1px solid var(--border);
-  background: var(--bg-main);
-  color: var(--text);
   user-select: none;
   white-space: nowrap;
-  transition: border-color .15s ease, background .15s ease, box-shadow .15s ease;
+
+  /* Додано для консистентності (як у ProfileBottom) */
+  box-sizing: border-box;
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .filters__dd[open] .filters__dd-btn {
@@ -105,8 +105,10 @@
   padding-left: 4px;
 }
 
+/* === ЗМІНА 2: Додано .filters__dd-btn до цієї групи === */
 .filters__select,
-.filters__number {
+.filters__number,
+.filters__dd-btn {
   height: 36px;
   padding: 0 10px;
   border-radius: var(--radius-sm);
@@ -118,7 +120,8 @@
 }
 
 .filters__select:focus,
-.filters__number:focus {
+.filters__number:focus,
+.filters__dd-btn:focus { /* Додано :focus */
   outline: none;
   border-color: var(--accent);
   box-shadow: 0 0 0 3px rgba(var(--brand-600-rgb) / .2);
@@ -152,7 +155,10 @@
 /* Responsive */
 @media (max-width: 780px) {
   .filters { gap: 10px 12px; }
-  .filters__select { min-width: 120px; }
+  .filters__select,
+  .filters__dd-btn { /* Додано .filters__dd-btn */
+    min-width: 120px;
+  }
 }
 
 /* ───────── List / states ───────── */

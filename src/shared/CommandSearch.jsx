@@ -123,12 +123,7 @@ export default function CommandSearch({ placeholder = 'Jump to… (Ctrl/⌘+K)' 
           setOpen(value.trim().length > 0 && results.length > 0);
         }}
       />
-      <button
-        className="cmd__btn"
-        type="button"
-        aria-label="Search"
-        onClick={() => inputRef.current?.focus()}
-      >🔍</button>
+      
 
       {open && (
         <div className="cmd__menu" role="listbox" aria-label="Commands">

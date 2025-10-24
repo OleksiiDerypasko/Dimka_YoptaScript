@@ -73,7 +73,7 @@
   /* Змінено: колір тексту на основний */
   color: var(--text);
   cursor: pointer;
-  transition: background 0.15s, transform 0.05s;
+  transition: background 0.15s, transform 0.05s, border-color .15s, color .15s; /* Додано transition */
 }
 .cm__btn:hover {
   /* Змінено: фон при наведенні на піднятий фон */
@@ -89,7 +89,7 @@
   /* Змінено: фон на акцентний (зелений) */
   background: var(--accent);
   /* Змінено: колір тексту на контрастний */
-  color: var(--accent-contrast);
+  color: var(--button-text); /* Оновлено */
 }
 .cm__btn--primary:hover {
   /* Змінено: фон при наведенні на акцентний ховер */
@@ -98,15 +98,15 @@
 }
 
 .cm__btn--danger {
-  /* Змінено: рамка на колір небезпеки */
-  border-color: var(--danger);
-  /* Змінено: колір тексту на колір небезпеки */
+  border-color: rgb(var(--danger-500-rgb) / .4);
+  background: rgb(var(--danger-500-rgb) / .12);
   color: var(--danger);
 }
 .cm__btn--danger:hover {
-  /* Змінено: фон при наведенні на прозорий фон небезпеки */
-  background: rgba(var(--danger-500-rgb) / 0.1);
+  background: rgb(var(--danger-500-rgb) / .22);
+  border-color: rgb(var(--danger-500-rgb) / .4); /* Залишаємо рамку при hover */
 }
+
 
 /* --- State / Loading / Empty --- */
 .cm__state {
@@ -131,7 +131,7 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
-  max-height: 60vh;
+  max-height: 45vh; /* ЗМІНЕНО: Було 60vh */
   overflow-y: auto;
   padding-right: 4px;
 }

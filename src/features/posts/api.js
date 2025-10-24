@@ -16,6 +16,7 @@ const baseOpts = {
 };
 
 // ========================= Public posts =========================
+// ========================= Public posts =========================
 export async function fetchPostsApi(params = {}) {
   const { match, ...rest } = params;
 
@@ -27,13 +28,21 @@ export async function fetchPostsApi(params = {}) {
 
   const q = { page, limit, sort, order, status };
 
+  // ✅ FIX: правильна передача категорій
   if (Array.isArray(rest.categories)) {
     const arr = rest.categories.map(Number).filter(Number.isFinite);
-    if (arr.length) q.categories = arr;
+    if (arr.length === 1) {
+      // одна категорія -> ?categoryId=3
+      q.categoryId = arr[0];
+    } else if (arr.length > 1) {
+      // кілька категорій -> CSV (на випадок, якщо бек це підтримує)
+      q.categories = arr.join(',');
+    }
   } else if (typeof rest.categories === 'string' && rest.categories.trim()) {
-    q.categories = rest.categories.trim();
+    q.categoryId = Number(rest.categories.trim());
   }
 
+  // решта параметрів
   Object.entries(rest).forEach(([k, v]) => {
     if (k in q) return;
     if (v === undefined || v === null || v === '') return;

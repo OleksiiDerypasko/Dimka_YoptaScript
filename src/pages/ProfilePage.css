@@ -66,7 +66,7 @@
   /* Змінено: фон на напівпрозорий фон картки */
   background: rgba(var(--brand-600-rgb) / 0.75);
   /* Змінено: колір на контрастний до акценту */
-  color: var(--accent-contrast);
+  color: var(--button-text); /* Оновлено на button-text */
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -191,15 +191,15 @@
 }
 .btn--primary {
   /* Змінено: фон на акцентний зелений */
-  background: var(--accent);
+  background: var(--button-bg); /* Оновлено */
   /* Змінено: рамка на акцентний зелений */
   border-color: var(--accent);
   /* Змінено: колір тексту на контрастний до акценту */
-  color: var(--accent-contrast);
+  color: var(--button-text); /* Оновлено */
 }
 .btn--primary:hover {
   /* Змінено: фон при наведенні на акцентний ховер */
-  background: var(--accent-hover);
+  background: var(--button-bg-hover); /* Оновлено */
   border-color: var(--accent-hover);
 }
 .btn--danger {
@@ -207,7 +207,7 @@
   background: var(--danger);
   /* Змінено: рамка на колір небезпеки */
   border-color: var(--danger);
-  color: #fff;
+  color: #fff; /* Зазвичай для червоного - білий */
 }
 .btn--danger:hover {
   /* Змінено: фон при наведенні на колір небезпеки ховер */
@@ -234,13 +234,9 @@
   padding: 24px 16px;
 }
 
-/*
- * ─── ОСНОВНА ЗМІНА ТУТ ───
- * Збільшено ширину полотна з 1024px до 1200px (як у HomePage)
- */
 .profile-layout {
   width: 100%;
-  max-width: 1200px; /* Було 1024px */
+  max-width: 1200px;
   margin: 0 auto;
   display: grid;
   grid-template-columns: 1fr;
@@ -251,8 +247,8 @@
 /* Однакова “картковість” для обох блоків */
 .profile-card,
 .profile-right .pb-panel {
-  /* Змінено: фон на піднятий фон */
-  background: var(--bg-elev-1);
+  /* Змінено: фон на фон картки */
+  background: var(--card-bg); /* Оновлено на card-bg */
   /* Змінено: рамка на колір рамки картки */
   border: 1px solid var(--card-border);
   border-radius: var(--radius-lg);

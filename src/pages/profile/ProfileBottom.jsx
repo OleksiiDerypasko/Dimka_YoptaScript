@@ -6,9 +6,11 @@ import { fetchCategoriesApi } from '../../features/categories/api';
 import PostCard from '../../shared/PostCard';
 import Pagination from '../../shared/Pagination';
 
+/* ====== Константи ====== */
 const SORT_OPTIONS  = [{ value: 'likes', label: 'By likes' }, { value: 'date', label: 'By date' }];
 const ORDER_OPTIONS = [{ value: 'desc', label: 'Desc' }, { value: 'asc', label: 'Asc' }];
 
+/* ====== Хелпери ====== */
 function buildQuery(params) {
   const sp = new URLSearchParams();
   Object.entries(params).forEach(([k, v]) => {
@@ -35,12 +37,25 @@ async function fetchPostsRaw(q, { token } = {}) {
   return res.json(); // { total, page, limit, items }
 }
 
+async function fetchPostCategories(postId, { token } = {}) {
+  const res = await fetch(`/api/posts/${postId}/categories`, {
+    headers: {
+      Accept: 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    cache: 'no-store',
+  });
+  if (!res.ok) return [];
+  return res.json(); // [{id,title}]
+}
+
+/* ====== Компонент ====== */
 export default function ProfileBottom({ userId, userLogin }) {
   const token = useSelector(selectAuthToken);
 
   // Фільтри
-  const [categories, setCategories] = useState([]); // {id,title}[]
-  const [checked, setChecked] = useState([]);       // обрані id
+  const [categories, setCategories] = useState([]);
+  const [checked, setChecked] = useState([]);
   const [sort, setSort] = useState('likes');
   const [order, setOrder] = useState('desc');
   const [limit, setLimit] = useState(10);
@@ -50,14 +65,14 @@ export default function ProfileBottom({ userId, userLogin }) {
 
   // Дані
   const [items, setItems] = useState([]);
-  const [allMine, setAllMine] = useState([]); // кеш повного списку "my"
+  const [allMine, setAllMine] = useState([]);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Категорії
+  /* ====== Категорії ====== */
   useEffect(() => {
     let mounted = true;
     (async () => {
@@ -76,7 +91,7 @@ export default function ProfileBottom({ userId, userLogin }) {
     const names = checked
       .map((id) => categories.find((c) => c.id === id)?.title)
       .filter(Boolean);
-    if (names.length > 2) return `${names.slice(0, 2).join(', ')}... (+${names.length - 2})`;
+    if (names.length > 2) return `${names.slice(0, 2).join(', ')}… (+${names.length - 2})`;
     return names.join(', ');
   }, [checked, categories]);
 
@@ -89,28 +104,62 @@ export default function ProfileBottom({ userId, userLogin }) {
     return source.slice(start, start + lim);
   }
 
+  /* ====== Головний фетч ====== */
   async function applyAtPage(targetPage) {
     setLoading(true);
     setError(null);
     try {
       const base = { page: targetPage, limit, sort, order, status: 'active' };
-      if (checked.length) base.categories = checked;
 
       if (activeTab === 'fav') {
         const data = await fetchPostsRaw({ ...base, favorite: true }, { token });
-        setItems(data?.items || []);
-        setTotal(data?.total ?? 0);
-        setPage(data?.page ?? targetPage);
-        if (data?.limit) setLimit(data.limit);
+        let favs = data?.items || [];
+
+        // ✅ клієнтська фільтрація по категоріях
+        if (checked.length) {
+          const catsByPost = await Promise.all(
+            favs.map(async (p) => {
+              const list = await fetchPostCategories(p.id, { token });
+              const ids = (Array.isArray(list) ? list : []).map((c) => c.id);
+              return { id: p.id, catIds: ids };
+            })
+          );
+          const picked = new Set(checked);
+          favs = favs.filter((p) => {
+            const rec = catsByPost.find((x) => x.id === p.id);
+            return rec && rec.catIds.some((cid) => picked.has(cid));
+          });
+        }
+
+        setItems(favs);
+        setTotal(favs.length);
+        setPage(targetPage);
         setAllMine([]);
       } else {
         const bigLimit = Math.max(limit, 100);
-        const data = await fetchPostsRaw({ ...base, page: 1, limit: bigLimit });
-        const mine = (data?.items || []).filter(
+        const data = await fetchPostsRaw({ ...base, page: 1, limit: bigLimit }, { token });
+        let mine = (data?.items || []).filter(
           (p) =>
             (userId && p.authorId === userId) ||
             (userLogin && p.authorLogin === userLogin)
         );
+
+        // ✅ клієнтська фільтрація по категоріях
+        if (checked.length) {
+          const catsByPost = await Promise.all(
+            mine.map(async (p) => {
+              const list = await fetchPostCategories(p.id, { token });
+              const ids = (Array.isArray(list) ? list : []).map((c) => c.id);
+              return { id: p.id, catIds: ids };
+            })
+          );
+          const picked = new Set(checked);
+          mine = mine.filter((p) => {
+            const rec = catsByPost.find((x) => x.id === p.id);
+            return rec && rec.catIds.some((cid) => picked.has(cid));
+          });
+        }
+
         setAllMine(mine);
         setTotal(mine.length);
         setPage(targetPage);
@@ -125,12 +174,11 @@ export default function ProfileBottom({ userId, userLogin }) {
     }
   }
 
-  // первинне завантаження коли є дані користувача
+  /* ====== Ефекти ====== */
   useEffect(() => {
     if (userId || userLogin) applyAtPage(1);
   }, [userId, userLogin]);
 
-  // перевантаження при зміні таба — з 1 сторінки
   useEffect(() => {
     if (userId || userLogin) {
       setPage(1);
@@ -147,7 +195,7 @@ export default function ProfileBottom({ userId, userLogin }) {
     if (activeTab === 'fav') {
       applyAtPage(newPage); // бек-пагінація
     } else {
-      setPage(newPage); // локальна пагінація
+      setPage(newPage);
       setItems(paginateLocal(allMine, newPage, limit));
     }
   }
@@ -156,9 +204,10 @@ export default function ProfileBottom({ userId, userLogin }) {
     applyAtPage(page);
   }
 
+  /* ====== Рендер ====== */
   return (
     <section className="pb-panel">
-      {/* ФІЛЬТРИ */}
+      {/* --- ФІЛЬТРИ --- */}
       <div className="pb-filters" role="region" aria-label="Filters & sorting">
         <details className="pb-dd">
           <summary className="pb-dd__button">{selectedSummary || 'Categories'}</summary>
@@ -215,7 +264,7 @@ export default function ProfileBottom({ userId, userLogin }) {
         </div>
       </div>
 
-      {/* ТАБИ */}
+      {/* --- ТАБИ --- */}
       <div className="pb-tabs" role="tablist" aria-label="Profile posts">
         <button
           role="tab"
@@ -235,7 +284,7 @@ export default function ProfileBottom({ userId, userLogin }) {
         </button>
       </div>
 
-      {/* ТІЛО */}
+      {/* --- ТІЛО --- */}
       <div className="pb-body">
         <div className="pb-list">
           {loading && <div className="pb-state">Loading posts…</div>}
@@ -253,8 +302,8 @@ export default function ProfileBottom({ userId, userLogin }) {
                     <PostCard
                       post={p}
                       variant="line"
-                      showEdit={activeTab === 'my'}   /* ← тільки в профілі власника */
-                      showDelete={activeTab === 'my'} /* ← і видалення також тут */
+                      showEdit={activeTab === 'my'}
+                      showDelete={activeTab === 'my'}
                       adminDelete={false}
                       onDeleted={refetchMyPosts}
                     />

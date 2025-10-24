@@ -75,8 +75,7 @@
   /* Змінено: колір на приглушений текст (зелена тема) */
   color: var(--text-muted);
 }
-.modalInput,
-.modalFile {
+.modalInput { /* Видалено .modalFile */
   height: 40px;
   border-radius: var(--radius-sm);
   /* Змінено: рамка на колір рамки картки (зелена тема) */
@@ -143,17 +142,85 @@
 
 .btn-primary {
   /* Змінено: фон на акцентний (зелений) */
-  background: var(--accent);
+  background: var(--button-bg); /* Оновлено */
   /* Змінено: рамка на акцентний (зелений) */
   border-color: var(--accent);
   /* Змінено: колір тексту на контрастний (зелена тема) */
-  color: var(--accent-contrast);
+  color: var(--button-text); /* Оновлено */
   /* Змінено: тінь на зелену */
   box-shadow: 0 6px 18px rgba(var(--brand-600-rgb) / 0.35);
 }
 .btn-primary:hover {
   /* Змінено: фон при наведенні на акцентний ховер (зелена тема) */
-  background: var(--accent-hover);
+  background: var(--button-bg-hover); /* Оновлено */
   border-color: var(--accent-hover);
   filter: none;
 }
+
+/* === ДОДАНО СТИЛІ ДЛЯ КАСТОМНОГО FILE INPUT === */
+
+/* 1. Справжній <input> ховаємо */
+.modalFile-input {
+  display: none;
+}
+
+/* 2. Обгортка, що виглядає як поле вводу */
+.modalFile-wrapper {
+  display: flex;
+  align-items: center;
+  height: 40px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--bg-main);
+  padding: 0 4px; /* Внутрішній відступ для кнопки */
+  box-sizing: border-box;
+  transition: border-color .15s, box-shadow .15s;
+}
+
+/* 3. Кнопка "Browse..." */
+.modalFile-btn {
+  display: inline-flex;
+  align-items: center;
+  height: 32px; /* 40px - (2 * 4px) відступи обгортки */
+  padding: 0 14px;
+  margin-right: 10px;
+  
+  /* Стилі як у .btn-secondary, але менші */
+  background: var(--bg-elev-1);
+  border: 1px solid var(--border);
+  color: var(--text);
+  
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background .15s ease, border-color .15s ease, box-shadow .15s ease;
+}
+
+/* 4. Наведення та фокус на кнопці */
+.modalFile-btn:hover {
+  background: var(--card-bg);
+  border-color: var(--accent);
+}
+.modalFile-btn:focus-visible {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(var(--brand-600-rgb) / 0.15);
+}
+
+/* 5. Текст "No file selected." */
+.modalFile-name {
+  font-size: 14px;
+  color: var(--text-muted);
+  
+  /* Щоб не виходило за межі */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 6. Коли файл обрано, текст стає яскравішим */
+.modalFile-name.is-selected {
+  color: var(--text);
+}
+/* === КІНЕЦЬ НОВИХ СТИЛІВ === */

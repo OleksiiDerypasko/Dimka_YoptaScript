@@ -37,8 +37,12 @@ export async function apiSend(path, method = 'GET', body, extraHeaders = {}) {
   const isJson = body && !(body instanceof FormData);
   const res = await fetch(buildUrl(path), {
     method,
+    // ВИМК: кеш для будь-якого методу
+    cache: 'no-store',
     headers: {
       Accept: 'application/json',
+      'Cache-Control': 'no-store, no-cache, must-revalidate',
+      Pragma: 'no-cache',
       ...(isJson ? { 'Content-Type': 'application/json' } : {}),
       ...authHeader(),
       ...extraHeaders,
@@ -50,7 +54,15 @@ export async function apiSend(path, method = 'GET', body, extraHeaders = {}) {
 
 // -------- Convenience wrappers --------
 export const apiGet = (path, params) =>
-  fetch(buildUrl(path, params), { headers: { Accept: 'application/json', ...authHeader() } }).then(handle);
+  fetch(buildUrl(path, params), {
+    cache: 'no-store', // ключове
+    headers: {
+      Accept: 'application/json',
+      'Cache-Control': 'no-store, no-cache, must-revalidate',
+      Pragma: 'no-cache',
+      ...authHeader(),
+    },
+  }).then(handle);
 
 export const apiPost  = (path, body) => apiSend(path, 'POST', body);
 export const apiPatch = (path, body) => apiSend(path, 'PATCH', body);
@@ -68,8 +80,11 @@ export async function apiUpload(url, formDataOrOptions) {
 
   const res = await fetch(buildUrl(url), {
     method: 'PATCH',
+    cache: 'no-store',
     headers: {
       Accept: 'application/json',
+      'Cache-Control': 'no-store, no-cache, must-revalidate',
+      Pragma: 'no-cache',
       ...authHeader(),
     },
     body: fd,

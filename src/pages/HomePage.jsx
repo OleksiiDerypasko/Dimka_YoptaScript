@@ -153,76 +153,84 @@ export default function HomePage() {
     setChecked((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
   }
 
-  // Головний фетч
-  async function applyAtPage(targetPage) {
-    setLoading(true);
-    setErr(null);
-    try {
-      const baseCommon = { page: targetPage, limit, sort, order };
-      if (!isAdmin) {
-        // Користувач: публічний фід, статус завжди active, серверна фільтрація за категоріями
-        const data = await fetchPublicPosts(
-          { ...baseCommon, status: 'active', ...(checked.length ? { categories: checked } : {}) },
-          { token }
-        );
-        setItems(Array.isArray(data?.items) ? data.items : []);
-        setTotal(Number(data?.total ?? 0));
-        setPage(Number(data?.page ?? targetPage));
-        if (Number.isFinite(data?.limit)) setLimit(Number(data.limit));
-        return;
-      }
+  // ===== Головний фетч =====
+// ===== Головний фетч =====
+async function applyAtPage(targetPage) {
+  setLoading(true);
+  setErr(null);
+  try {
+    const baseCommon = { page: targetPage, limit, sort, order };
 
-      // Адмін
-      if (status === 'active') {
-        // Активні — можна користуватись публічним фідом з категоріями
-        const data = await fetchPublicPosts(
-          { ...baseCommon, status, ...(checked.length ? { categories: checked } : {}) },
-          { token }
-        );
-        setItems(Array.isArray(data?.items) ? data.items : []);
-        setTotal(Number(data?.total ?? 0));
-        setPage(Number(data?.page ?? targetPage));
-        if (Number.isFinite(data?.limit)) setLimit(Number(data.limit));
-        return;
-      }
+    // --- Користувач (не адмін) ---
+    if (!isAdmin) {
+      // Беремо всі пости (active)
+      const data = await fetchPublicPosts(
+        { ...baseCommon, status: 'active' },
+        { token }
+      );
 
-      // INACTIVE або ALL — повний список з адмін-ендпойнта:
-      const adminData = await fetchAdminPosts({ ...baseCommon, status }, { token });
-      let pageItems = Array.isArray(adminData?.items) ? adminData.items : [];
+      let posts = Array.isArray(data?.items) ? data.items : [];
 
-      // 1) Додаткова **клієнтська** фільтрація за статусом (бо бек може ігнорувати status)
-      if (status === 'inactive') {
-        pageItems = pageItems.filter((p) => (p.status ?? 'active') === 'inactive');
-      } // для 'all' нічого не відсікаємо
-
-      // 2) Клієнтська фільтрація за категоріями (якщо обрані)
+      // ✅ клієнтська фільтрація за категоріями
       if (checked.length) {
         const catsByPost = await Promise.all(
-          pageItems.map(async (p) => {
+          posts.map(async (p) => {
             const list = await fetchPostCategories(p.id, { token });
             const ids = (Array.isArray(list) ? list : []).map((c) => c.id);
             return { id: p.id, catIds: ids };
           })
         );
         const picked = new Set(checked);
-        pageItems = pageItems.filter((p) => {
+        posts = posts.filter((p) => {
           const rec = catsByPost.find((x) => x.id === p.id);
           return rec && rec.catIds.some((cid) => picked.has(cid));
         });
       }
 
-      setItems(pageItems);
-      setTotal(Number(adminData?.total ?? pageItems.length)); // серверний total лишаємо як є
-      setPage(Number(adminData?.page ?? targetPage));
-      if (Number.isFinite(adminData?.limit)) setLimit(Number(adminData.limit));
-    } catch (e) {
-      setItems([]);
-      setTotal(0);
-      setErr(e?.message || 'Failed to fetch posts');
-    } finally {
-      setLoading(false);
+      setItems(posts);
+      setTotal(posts.length);
+      setPage(Number(data?.page ?? targetPage));
+      if (Number.isFinite(data?.limit)) setLimit(Number(data.limit));
+      return;
     }
+
+    // --- Адмін ---
+    const data = await fetchAdminPosts({ ...baseCommon, status }, { token });
+    let pageItems = Array.isArray(data?.items) ? data.items : [];
+
+    // фільтрація за статусом
+    if (status === 'inactive') {
+      pageItems = pageItems.filter((p) => (p.status ?? 'active') === 'inactive');
+    }
+
+    // ✅ клієнтська фільтрація за категоріями (активна і для active)
+    if (checked.length) {
+      const catsByPost = await Promise.all(
+        pageItems.map(async (p) => {
+          const list = await fetchPostCategories(p.id, { token });
+          const ids = (Array.isArray(list) ? list : []).map((c) => c.id);
+          return { id: p.id, catIds: ids };
+        })
+      );
+      const picked = new Set(checked);
+      pageItems = pageItems.filter((p) => {
+        const rec = catsByPost.find((x) => x.id === p.id);
+        return rec && rec.catIds.some((cid) => picked.has(cid));
+      });
+    }
+
+    setItems(pageItems);
+    setTotal(Number(data?.total ?? pageItems.length));
+    setPage(Number(data?.page ?? targetPage));
+    if (Number.isFinite(data?.limit)) setLimit(Number(data.limit));
+  } catch (e) {
+    setItems([]);
+    setTotal(0);
+    setErr(e?.message || 'Failed to fetch posts');
+  } finally {
+    setLoading(false);
   }
+}
 
   // Стартовий фетч + при зміні ролі
   useEffect(() => {
@@ -304,7 +312,7 @@ export default function HomePage() {
 
           {/* Sort */}
           <div className="filters__group">
-            <label className="filters__label">Sort</label>
+            
             <select
               className="filters__select"
               value={sort}
@@ -318,7 +326,7 @@ export default function HomePage() {
 
           {/* Order */}
           <div className="filters__group">
-            <label className="filters__label">Order</label>
+            
             <select
               className="filters__select"
               value={order}
@@ -332,7 +340,7 @@ export default function HomePage() {
 
           {/* Limit */}
           <div className="filters__group">
-            <label className="filters__label">Per page</label>
+            
             <input
               className="filters__number"
               type="number"
@@ -349,7 +357,7 @@ export default function HomePage() {
           {/* Status (адмін) */}
           {isAdmin && (
             <div className="filters__group">
-              <label className="filters__label">Status</label>
+              
               <select
                 className="filters__select"
                 value={status}

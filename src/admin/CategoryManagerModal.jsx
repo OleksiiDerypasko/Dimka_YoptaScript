@@ -108,9 +108,10 @@ export default function CategoryManagerModal({ open, onClose }) {
   }
 
   return (
-    <Modal open={open} onClose={onClose} size="lg">
-      <div className="admin-modal">
-        <h2 className="admin-modal__title">Category Manager</h2>
+    <Modal open={open} onClose={onClose} title="Category Manager" width={600}> {/* Змінено title та width */}
+      {/* Використовуємо .cm замість .admin-modal для головного контейнера */}
+      <div className="cm">
+        {/* Видалено h2, оскільки title передається в Modal */}
 
         <div className="cm__toolbar">
           <input
@@ -198,9 +199,12 @@ export default function CategoryManagerModal({ open, onClose }) {
           </div>
         )}
 
-        <div className="admin-modal__actions">
+        {/* === БЛОК .admin-modal__actions ВИДАЛЕНО === */}
+        {/* <div className="admin-modal__actions">
           <button className="admin-modal__btn" onClick={onClose}>Close</button>
-        </div>
+        </div> */}
+        {/* === КІНЕЦЬ ЗМІНИ === */}
+
       </div>
     </Modal>
   );

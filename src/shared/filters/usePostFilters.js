@@ -62,16 +62,19 @@ export default function usePostFilters(options = {}) {
   }, [readFromUrl, urlSync]);
 
   // params для API
-  const apiParams = useMemo(() => {
-    const f = filters;
-    const p = { page: f.page, limit: f.limit, sort: f.sort, order: f.order };
-    if (f.status) p.status = f.status;
-    if (f.categories?.length) p.categories = f.categories.join(',');
-    if (f.q) p.q = f.q;
-    if (f.from) p.from = f.from;
-    if (f.to) p.to = f.to;
-    return p;
-  }, [filters]);
+// params для API
+const apiParams = useMemo(() => {
+  const f = filters;
+  const p = { page: f.page, limit: f.limit, sort: f.sort, order: f.order };
+  if (f.status) p.status = f.status;
+  if (f.categories?.length === 1) p.categoryId = f.categories[0];       // ✅ FIX
+  else if (f.categories?.length > 1) p.categories = f.categories.join(',');
+  if (f.q) p.q = f.q;
+  if (f.from) p.from = f.from;
+  if (f.to) p.to = f.to;
+  return p;
+}, [filters]);
+
 
   // Оновити одне поле (переходимо на 1 сторінку при зміні будь-чого, крім page)
   const setField = useCallback((key, value) => {
