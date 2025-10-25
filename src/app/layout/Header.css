@@ -77,6 +77,10 @@
 /* right: profile block */
 .header__right { display: flex; justify-content: flex-end; }
 
+.profile #ava{
+  cursor: pointer;
+}
+
 .profile {
   position: relative;                  /* для дропдауна */
   display: grid;
@@ -84,7 +88,6 @@
   grid-template-rows: 1fr 1fr;         /* username / role */
   align-items: center;
   gap: 4px 12px;
-  cursor: pointer;
 }
 .profile__info {
   grid-column: 1 / 2;
@@ -254,7 +257,14 @@
   .header__container { grid-template-columns: 1fr minmax(200px, 1.2fr) 1fr; }
 }
 @media (max-width: 640px) {
-  .header__center { display: none; }  /* дуже вузько — ховаємо пошук */
+  /* .header__center { display: none; } */ /* 1. Коментуємо або видаляємо це правило */
+
+  /* 2. Натомість змінюємо саму сітку, щоб вона була гнучкою */
+  .header__container {
+    /* [Лого]  [Пошук (весь вільний простір)]  [Профіль] */
+    grid-template-columns: auto 1fr auto;
+    padding: 0 16px; /* Можна також трохи зменшити відступи */
+  }
 }
 @media (max-width: 420px) {
   /* Збільшуємо ширину, щоб зайняти доступний простір на мобільних */
@@ -515,5 +525,66 @@
 .admin-modal__btn:hover {
   /* Змінено: фон при наведенні на піднятий фон */
   background: var(--bg-elev-1);
+}
+
+.header__center.is-locked { position: relative; }
+.header__center.is-locked > *:not(.search-lock) { pointer-events: none; filter: grayscale(1) opacity(.6); }
+.search-lock {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  border: 1px solid var(--card-border, #2a2a2a);
+  background: rgb(0 0 0 / .35); backdrop-filter: blur(2px);
+  color: var(--text, #eaeaea); font-weight: 600; border-radius: 10px; cursor: pointer;
+}
+.search-lock:hover { background: rgb(0 0 0 / .45); }
+
+
+/* Уніфікований вигляд для нижнього ряду без зелених кіл */
+.am-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+/* Фон, рамка, поведінка як у Create post */
+.am-row .am-item {
+  background: var(--bg-main);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-md);
+  padding: 10px 12px;
+  transition: background .15s ease, border-color .15s ease, transform .02s ease;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.am-row .am-item:hover {
+  background: var(--bg-elev-1);
+  border-color: var(--accent);
+}
+
+/* Іконки без фону — просто кольорові символи */
+.am-row .am-ic {
+  background: transparent;   /* прибирає овали */
+  color: var(--accent);      /* зелений акцент */
+  width: 20px;
+  height: 20px;
+  display: grid;
+  place-items: center;
+  font-size: 16px;
+}
+
+/* Текст у картках */
+.am-row .am-text {
+  display: grid;
+  line-height: 1.15;
+}
+.am-row .am-title {
+  font-weight: 600;
+}
+.am-row .am-sub {
+  color: var(--text-muted);
+  font-size: 12px;
+  margin-top: 2px;
 }
 

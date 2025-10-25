@@ -13,7 +13,7 @@ export default function LoginPage() {
   return (
     <div className="auth">
       <aside className="auth__side auth__side--promo">
-        <video className="promo-video" src="/videos/promo.mp4" autoPlay muted loop playsInline />
+        
         <div className="promo-overlay" />
       </aside>
 

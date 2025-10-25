@@ -1,4 +1,3 @@
-// src/pages/EditPostPage.jsx
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
@@ -107,8 +106,17 @@ export default function EditPostPage() {
       };
 
       const updated = await updatePostApi(id, body, token);
-      // повертаємося на сторінку поста
-      navigate(`/posts/${updated.id}`, { state: { post: updated } });
+
+      // 🔧 ГІДРАЦІЯ: гарантуємо наявність автора для миттєвого перегляду
+      const hydrated = {
+        ...updated,
+        authorId: updated.authorId ?? me?.id,
+        authorLogin: updated.authorLogin ?? me?.login,
+        authorFullName: updated.authorFullName ?? me?.fullName,
+      };
+
+      // повертаємося на сторінку поста з повними даними
+      navigate(`/posts/${hydrated.id}`, { state: { post: hydrated } });
     } catch (e2) {
       setSubmitErr(e2?.message || 'Failed to update post');
     } finally {

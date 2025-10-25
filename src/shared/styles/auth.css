@@ -25,15 +25,22 @@ main{margin:0;padding:0}
 }
 .auth__side{min-width:0}
 
-/* LEFT: тільки фото з затемненням */
 .auth__side--promo{
   position:relative;
-  /* Градієнт нейтральний, але використовуємо rgba(0,0,0,...) для затемнення */
   background:
-    linear-gradient(0deg, rgba(0,0,0,.58), rgba(0,0,0,.58)),
-    url('https://images.unsplash.com/photo-1517602302552-471fe67acf66?q=80&w=1880&auto=format&fit=crop') center/cover no-repeat;
-  overflow: hidden;
+    linear-gradient(0deg, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0)),
+    url('../../assets/images/auth-bg.jpg') center/cover no-repeat;
+  overflow:hidden;
 }
+
+.auth__side--promo-reg{
+  position:relative;
+  background:
+    linear-gradient(0deg, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0)),
+    url('../../assets/images/register.jpg') center/cover no-repeat;
+  overflow:hidden;
+}
+
 
 /* RIGHT: панель форми */
 .auth__side--form{

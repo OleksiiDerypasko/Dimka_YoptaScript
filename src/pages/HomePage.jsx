@@ -125,6 +125,9 @@ export default function HomePage() {
   // Кеш імен для адміна: userId -> fullName
   const [namesCache, setNamesCache] = useState({}); // { [id]: string|null }
 
+  // Снапшот для оптимістичного видалення (останній елемент)
+  const lastRemovedRef = useRef(null);
+
   const catDDRef = useRef(null);
 
   // Категорії
@@ -154,83 +157,80 @@ export default function HomePage() {
   }
 
   // ===== Головний фетч =====
-// ===== Головний фетч =====
-async function applyAtPage(targetPage) {
-  setLoading(true);
-  setErr(null);
-  try {
-    const baseCommon = { page: targetPage, limit, sort, order };
+  async function applyAtPage(targetPage) {
+    setLoading(true);
+    setErr(null);
+    try {
+      const baseCommon = { page: targetPage, limit, sort, order };
 
-    // --- Користувач (не адмін) ---
-    if (!isAdmin) {
-      // Беремо всі пости (active)
-      const data = await fetchPublicPosts(
-        { ...baseCommon, status: 'active' },
-        { token }
-      );
+      // --- Користувач (не адмін) ---
+      if (!isAdmin) {
+        const data = await fetchPublicPosts(
+          { ...baseCommon, status: 'active' },
+          { token }
+        );
 
-      let posts = Array.isArray(data?.items) ? data.items : [];
+        let posts = Array.isArray(data?.items) ? data.items : [];
 
-      // ✅ клієнтська фільтрація за категоріями
+        // клієнтська фільтрація за категоріями
+        if (checked.length) {
+          const catsByPost = await Promise.all(
+            posts.map(async (p) => {
+              const list = await fetchPostCategories(p.id, { token });
+              const ids = (Array.isArray(list) ? list : []).map((c) => c.id);
+              return { id: p.id, catIds: ids };
+            })
+          );
+          const picked = new Set(checked);
+          posts = posts.filter((p) => {
+            const rec = catsByPost.find((x) => x.id === p.id);
+            return rec && rec.catIds.some((cid) => picked.has(cid));
+          });
+        }
+
+        setItems(posts);
+        setTotal(posts.length);
+        setPage(Number(data?.page ?? targetPage));
+        if (Number.isFinite(data?.limit)) setLimit(Number(data.limit));
+        return;
+      }
+
+      // --- Адмін ---
+      const data = await fetchAdminPosts({ ...baseCommon, status }, { token });
+      let pageItems = Array.isArray(data?.items) ? data.items : [];
+
+      if (status === 'inactive') {
+        pageItems = pageItems.filter((p) => (p.status ?? 'active') === 'inactive');
+      }
+
+      // клієнтська фільтрація за категоріями
       if (checked.length) {
         const catsByPost = await Promise.all(
-          posts.map(async (p) => {
+          pageItems.map(async (p) => {
             const list = await fetchPostCategories(p.id, { token });
             const ids = (Array.isArray(list) ? list : []).map((c) => c.id);
             return { id: p.id, catIds: ids };
           })
         );
         const picked = new Set(checked);
-        posts = posts.filter((p) => {
+        pageItems = pageItems.filter((p) => {
           const rec = catsByPost.find((x) => x.id === p.id);
           return rec && rec.catIds.some((cid) => picked.has(cid));
         });
       }
 
-      setItems(posts);
-      setTotal(posts.length);
+      setItems(pageItems);
+      setTotal(Number(data?.total ?? pageItems.length));
       setPage(Number(data?.page ?? targetPage));
       if (Number.isFinite(data?.limit)) setLimit(Number(data.limit));
-      return;
+    } catch (e) {
+      setItems([]);
+      setTotal(0);
+      setErr(e?.message || 'Failed to fetch posts');
+    } finally {
+      setLoading(false);
     }
-
-    // --- Адмін ---
-    const data = await fetchAdminPosts({ ...baseCommon, status }, { token });
-    let pageItems = Array.isArray(data?.items) ? data.items : [];
-
-    // фільтрація за статусом
-    if (status === 'inactive') {
-      pageItems = pageItems.filter((p) => (p.status ?? 'active') === 'inactive');
-    }
-
-    // ✅ клієнтська фільтрація за категоріями (активна і для active)
-    if (checked.length) {
-      const catsByPost = await Promise.all(
-        pageItems.map(async (p) => {
-          const list = await fetchPostCategories(p.id, { token });
-          const ids = (Array.isArray(list) ? list : []).map((c) => c.id);
-          return { id: p.id, catIds: ids };
-        })
-      );
-      const picked = new Set(checked);
-      pageItems = pageItems.filter((p) => {
-        const rec = catsByPost.find((x) => x.id === p.id);
-        return rec && rec.catIds.some((cid) => picked.has(cid));
-      });
-    }
-
-    setItems(pageItems);
-    setTotal(Number(data?.total ?? pageItems.length));
-    setPage(Number(data?.page ?? targetPage));
-    if (Number.isFinite(data?.limit)) setLimit(Number(data.limit));
-  } catch (e) {
-    setItems([]);
-    setTotal(0);
-    setErr(e?.message || 'Failed to fetch posts');
-  } finally {
-    setLoading(false);
   }
-}
 
   // Стартовий фетч + при зміні ролі
   useEffect(() => {
@@ -284,6 +284,30 @@ async function applyAtPage(targetPage) {
     })();
   }, [isAdmin, items, namesCache, token]);
 
+  // ====== Обробники оптимістичного видалення (для PostCard) ======
+  function handleCardDeleted(id, post) {
+    lastRemovedRef.current = { id, post, index: items.findIndex(p => p.id === id) };
+    setItems(prev => prev.filter(p => p.id !== id));
+    setTotal(t => Math.max(0, t - 1));
+  }
+
+  function handleDeleteFailed(id, post) {
+    const snap = lastRemovedRef.current;
+    if (!snap || snap.id !== id) {
+      setItems(prev => [post, ...prev]);
+      setTotal(t => t + 1);
+      return;
+    }
+    setItems(prev => {
+      const next = prev.slice();
+      const idx = Math.max(0, Math.min(snap.index, next.length));
+      next.splice(idx, 0, snap.post);
+      return next;
+    });
+    setTotal(t => t + 1);
+    lastRemovedRef.current = null;
+  }
+
   return (
     <div className="home">
       <section className="home__panel">
@@ -312,7 +336,6 @@ async function applyAtPage(targetPage) {
 
           {/* Sort */}
           <div className="filters__group">
-            
             <select
               className="filters__select"
               value={sort}
@@ -326,7 +349,6 @@ async function applyAtPage(targetPage) {
 
           {/* Order */}
           <div className="filters__group">
-            
             <select
               className="filters__select"
               value={order}
@@ -340,7 +362,6 @@ async function applyAtPage(targetPage) {
 
           {/* Limit */}
           <div className="filters__group">
-            
             <input
               className="filters__number"
               type="number"
@@ -357,7 +378,6 @@ async function applyAtPage(targetPage) {
           {/* Status (адмін) */}
           {isAdmin && (
             <div className="filters__group">
-              
               <select
                 className="filters__select"
                 value={status}
@@ -387,7 +407,6 @@ async function applyAtPage(targetPage) {
           {!loading && !err && items.length > 0 && (
             <div className="home__col">
               {items.map(p => {
-                // Для адміна: якщо немає authorFullName, підставити з кешу (або лишити login)
                 const displayName =
                   p.authorFullName ||
                   (Number.isFinite(Number(p.authorId)) && namesCache[p.authorId]) ||
@@ -395,19 +414,18 @@ async function applyAtPage(targetPage) {
                 const patched = displayName ? { ...p, authorFullName: displayName } : p;
 
                 return (
-                  <div className="home__item" key={p.id}>
-                    <div
-  className={`home__item ${p.status === 'inactive' ? 'home__item--inactive' : ''}`}
-  key={p.id}
->
-  <PostCard
-    post={patched}
-    variant="line"
-    showDelete={isAdmin}
-    adminDelete={true}
-  />
-</div>
-
+                  <div
+                    className={`home__item ${p.status === 'inactive' ? 'home__item--inactive' : ''}`}
+                    key={p.id}
+                  >
+                    <PostCard
+                      post={patched}
+                      variant="line"
+                      showDelete={isAdmin}
+                      adminDelete={true}
+                      onDeleted={handleCardDeleted}
+                      onDeleteFailed={handleDeleteFailed}
+                    />
                   </div>
                 );
               })}

@@ -12,7 +12,7 @@ export default function NotFoundPage() {
         loop
         playsInline
       >
-        <source src="/videos/404.mp4" type="video/mp4" />
+        <source src="/videos/404_5.mp4" type="video/mp4" />
       </video>
 
       {/* затемнення поверх відео */}

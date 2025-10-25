@@ -1,8 +1,7 @@
-// src/pages/CreatePostPage.jsx
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import { selectAuthToken, selectIsAuthed } from '../features/auth/selectors';
+import { selectAuthToken, selectIsAuthed, selectAuthUser } from '../features/auth/selectors';
 import { listCategoriesApi, createPostApi } from '../features/posts/api';
 import './CreatePostPage.css';
 
@@ -10,6 +9,7 @@ export default function CreatePostPage() {
   const navigate = useNavigate();
   const token = useSelector(selectAuthToken);
   const isAuthed = useSelector(selectIsAuthed);
+  const me = useSelector(selectAuthUser);
 
   // якщо гість — відправляємо на логін
   useEffect(() => {
@@ -71,8 +71,17 @@ export default function CreatePostPage() {
         categories: selectedCats,
       };
       const created = await createPostApi(body, token);
-      // редірект на новий пост
-      navigate(`/posts/${created.id}`, { state: { post: created } });
+
+      // 🔧 ГІДРАЦІЯ: підставляємо автора з me, якщо бек не повернув
+      const hydrated = {
+        ...created,
+        authorId: created.authorId ?? me?.id,
+        authorLogin: created.authorLogin ?? me?.login,
+        authorFullName: created.authorFullName ?? me?.fullName,
+      };
+
+      // редірект на новий пост з повними даними
+      navigate(`/posts/${hydrated.id}`, { state: { post: hydrated } });
     } catch (e2) {
       setSubmitErr(e2?.message || 'Failed to create post');
     } finally {

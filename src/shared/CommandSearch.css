@@ -80,3 +80,6 @@
   /* Змінено: колір групи на приглушений текст */
   color: var(--text-muted);
 }
+
+.cmd.is-disabled { opacity: .6; pointer-events: auto; }
+.cmd.is-disabled .cmd__input { cursor: not-allowed; }

@@ -1,4 +1,3 @@
-// src/shared/CommandSearch.jsx
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ALL_COMMANDS } from '../search/commands';
@@ -11,7 +10,6 @@ function normalize(s) {
 function matchScore(cmd, q) {
   const nq = normalize(q);
   if (!nq) return 0;
-
   let score = 0;
   if (normalize(cmd.title).includes(nq)) score += 2;
   for (const k of cmd.keywords || []) {
@@ -20,7 +18,10 @@ function matchScore(cmd, q) {
   return score;
 }
 
-export default function CommandSearch({ placeholder = 'Jump to… (Ctrl/⌘+K)' }) {
+export default function CommandSearch({
+  placeholder = 'Jump to… (Ctrl/⌘+K)',
+  disabled = false,
+}) {
   const nav = useNavigate();
   const [value, setValue] = useState('');
   const [open, setOpen]   = useState(false);
@@ -31,6 +32,7 @@ export default function CommandSearch({ placeholder = 'Jump to… (Ctrl/⌘+K)' 
 
   // Результати на основі поточного value
   const results = useMemo(() => {
+    if (disabled) return [];
     const q = value.trim();
     if (!q) return [];
     const withScore = ALL_COMMANDS
@@ -38,10 +40,11 @@ export default function CommandSearch({ placeholder = 'Jump to… (Ctrl/⌘+K)' 
       .filter(x => x.s > 0)
       .sort((a,b) => b.s - a.s);
     return withScore.map(x => x.c).slice(0, 8);
-  }, [value]);
+  }, [value, disabled]);
 
   // Клік поза — закриваємо
   useEffect(() => {
+    if (disabled) return;
     function onDoc(e) {
       const t = e.target;
       if (!boxRef.current) return;
@@ -49,15 +52,16 @@ export default function CommandSearch({ placeholder = 'Jump to… (Ctrl/⌘+K)' 
     }
     document.addEventListener('mousedown', onDoc);
     return () => document.removeEventListener('mousedown', onDoc);
-  }, []);
+  }, [disabled]);
 
   // Відкривати меню коли зʼявляються результати
   useEffect(() => {
+    if (disabled) { setOpen(false); setActiveIdx(0); return; }
     setOpen(results.length > 0);
     setActiveIdx(0);
-  }, [results.length]);
+  }, [results.length, disabled]);
 
-  // Глобальний хоткей Ctrl/Cmd+K -> фокус інпуту й (за наявності збігів) відкриття меню
+  // Глобальний хоткей Ctrl/Cmd+K -> фокус інпуту
   useEffect(() => {
     function computeHasResults(q) {
       const nq = q.trim();
@@ -67,8 +71,8 @@ export default function CommandSearch({ placeholder = 'Jump to… (Ctrl/⌘+K)' 
       }
       return false;
     }
-
     function onKey(e) {
+      if (disabled) return; // — заблоковано
       const k = String(e.key || '').toLowerCase();
       if ((e.ctrlKey || e.metaKey) && k === 'k') {
         e.preventDefault();
@@ -78,12 +82,12 @@ export default function CommandSearch({ placeholder = 'Jump to… (Ctrl/⌘+K)' 
         setOpen(computeHasResults(current));
       }
     }
-
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
-  }, []); // без залежностей, без ESLint-ігнорів
+  }, [disabled]);
 
   function runAction(cmd) {
+    if (disabled) return;
     try { cmd.action(nav); } finally {
       setOpen(false);
       setValue('');
@@ -92,6 +96,7 @@ export default function CommandSearch({ placeholder = 'Jump to… (Ctrl/⌘+K)' 
   }
 
   function onKeyDown(e) {
+    if (disabled) return;
     if (!open) return;
     if (e.key === 'ArrowDown') {
       e.preventDefault();
@@ -109,23 +114,24 @@ export default function CommandSearch({ placeholder = 'Jump to… (Ctrl/⌘+K)' 
   }
 
   return (
-    <div className="cmd" ref={boxRef}>
+    <div className={`cmd ${disabled ? 'is-disabled' : ''}`} ref={boxRef} aria-disabled={disabled}>
       <input
         ref={inputRef}
         className="cmd__input"
         type="search"
         value={value}
-        onChange={(e)=>setValue(e.target.value)}
+        onChange={(e)=>{ if (!disabled) setValue(e.target.value); }}
         onKeyDown={onKeyDown}
         placeholder={placeholder}
         aria-label="Command search"
         onFocus={() => {
+          if (disabled) return;
           setOpen(value.trim().length > 0 && results.length > 0);
         }}
+        disabled={disabled}
       />
-      
 
-      {open && (
+      {!disabled && open && (
         <div className="cmd__menu" role="listbox" aria-label="Commands">
           {results.map((r, i) => (
             <button

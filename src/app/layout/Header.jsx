@@ -26,10 +26,20 @@ export default function Header() {
   const isAuthed = useSelector(selectIsAuthed);
   const isAdmin = user?.role === 'admin';
 
-  const isAuthPage = pathname === '/login' || pathname === '/register';
-  const showSearch = !isAuthPage;
-  const showProfile = !isAuthPage && isAuthed;
-  const showAuthButtons = !isAuthPage && !isAuthed;
+  // маршрути авторизації, де ховаємо і профіль, і пошук
+  const isAuthRoute = ['/login', '/register', '/verify-email'].includes(pathname);
+  const isHome = pathname === '/';
+
+  // SEARCH: показуємо на всіх НЕ-авторизаційних сторінках
+  const showSearch = !isAuthRoute;
+  // заблокований для гостей
+  const searchLocked = showSearch && !isAuthed;
+
+  // PROFILE: показуємо коли залогінений і не auth-сторінка
+  const showProfile = !isAuthRoute && isAuthed;
+
+  // AUTH BUTTONS: тільки на головній
+  const showAuthButtons = isHome && !isAuthed;
 
   const username = user?.login ? `@${user.login}` : '@guest';
   const role = user?.role || 'guest';
@@ -77,9 +87,24 @@ export default function Header() {
           <Link to="/" className="brand">Houdini</Link>
         </div>
 
-        {/* ✅ робочий CommandSearch у центрі */}
-        <div className={`header__center ${showSearch ? '' : 'is-hidden'}`}>
-          <CommandSearch placeholder="Jump to… (Ctrl/⌘+K)" />
+        {/* === SEARCH: для всіх не-auth сторінок; для гостей — заблокований оверлеєм === */}
+        <div className={`header__center ${showSearch ? '' : 'is-hidden'} ${searchLocked ? 'is-locked' : ''}`}>
+          {showSearch && (
+            <>
+              <CommandSearch placeholder="Jump to… (Ctrl/⌘+K)" />
+              {searchLocked && (
+                <button
+                  type="button"
+                  className="search-lock"
+                  title="Login to use search"
+                  onClick={() => navigate('/login')}
+                  aria-label="Search is locked. Login to use."
+                >
+                  🔒 Login to search
+                </button>
+              )}
+            </>
+          )}
         </div>
 
         <div className="header__right">
@@ -92,7 +117,7 @@ export default function Header() {
 
               <div className="profile__avatar">
                 {user?.avatarUrl ? (
-                  <img src={user.avatarUrl} alt="avatar" />
+                  <img src={user.avatarUrl} id="ava" alt="avatar" />
                 ) : (
                   <div className="avatar-fallback" aria-hidden>{initials}</div>
                 )}
@@ -205,7 +230,7 @@ export default function Header() {
             </div>
           )}
 
-          {!showProfile && showAuthButtons && (
+          {showAuthButtons && (
             <div className="auth-buttons">
               <button className="auth-btn" onClick={() => navigate('/login')}>Login</button>
               <button className="auth-btn auth-btn--primary" onClick={() => navigate('/register')}>Register</button>

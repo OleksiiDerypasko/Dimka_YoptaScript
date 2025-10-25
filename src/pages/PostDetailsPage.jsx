@@ -778,29 +778,49 @@ useEffect(() => {
   return (
     <div className="post-page">
       <article className="post-card">
-        <header className="post-head">
-          <h1 className="post-title">{title}</h1>
-          <div className="post-meta">
-            <span className="post-author">{authorFullName || authorLogin || 'unknown'}</span>
-            <span className="post-dot">•</span>
-            <time className="post-date">{createdAt ? new Date(createdAt).toLocaleDateString() : ''}</time>
-          </div>
+<header className="post-head">
+  <h1 className="post-title">{title}</h1>
 
-          {(isAdmin) && (
-            <div className="post-status-control">
-              <span className={`post-status-badge ${postStatus === 'active' ? 'is-ok' : 'is-off'}`}>
-                {postStatus}
-              </span>
-              <ToggleSwitch
-                checked={postStatus === 'active'}
-                onChange={(next) => onTogglePostStatus(next)}
-                disabled={statusSaving}
-                label="Post"
-                title="Admin: toggle post status"
-              />
-            </div>
-          )}
-        </header>
+  {/* один рядок: ліворуч — мета; праворуч — тумблер (для адміна) */}
+  <div className="post-toolbar">
+    <div className="post-meta">
+      <span className="post-author">{authorFullName || authorLogin || 'unknown'}</span>
+      <span className="post-dot">•</span>
+      {createdAt && (() => {
+        const dt = new Date(createdAt);
+        const label = dt.toLocaleString(undefined, {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+        });
+        return (
+          <time className="post-date" dateTime={dt.toISOString()} title={dt.toISOString()}>
+            {label}
+          </time>
+        );
+      })()}
+    </div>
+
+    {isAdmin && (
+      <div className="post-status-control" title="Admin: toggle post status">
+        <span className={`post-status-badge ${postStatus === 'active' ? 'is-ok' : 'is-off'}`}>
+          {postStatus}
+        </span>
+        <ToggleSwitch
+          checked={postStatus === 'active'}
+          onChange={(next) => onTogglePostStatus(next)}
+          disabled={statusSaving}
+          label="Post"
+        />
+      </div>
+    )}
+  </div>
+</header>
+
+
+
 
         <section className="post-cats">
           {catsLoading && <span className="post-cat post-cat--loading">Loading…</span>}

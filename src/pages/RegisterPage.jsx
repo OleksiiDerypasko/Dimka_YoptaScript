@@ -12,15 +12,8 @@ export default function RegisterPage() {
   return (
     <div className="auth">
       {/* LEFT: відео + затемнення */}
-      <aside className="auth__side auth__side--promo">
-        <video
-          className="promo-video"
-          src="/videos/video.mp4" // шлях від public/
-          autoPlay
-          muted
-          loop
-          playsInline
-        />
+      <aside className="auth__side auth__side--promo-reg">
+        
         <div className="promo-overlay" />
       </aside>
 

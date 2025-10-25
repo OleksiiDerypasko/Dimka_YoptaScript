@@ -12,7 +12,7 @@ import PostDetailsPage from './pages/PostDetailsPage';
 import CreatePostPage from './pages/CreatePostPage';
 import EditPostPage from './pages/EditPostPage';
 import ResetPasswordPage from './pages/ResetPasswordPage'; // ⬅️ ДОДАНО
-
+import VerifyEmailPage from './pages/VerifyEmailPage';
 import { restoreSession } from './features/auth/actions';
 
 export default function App() {
@@ -35,6 +35,7 @@ export default function App() {
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/posts/new" element={<CreatePostPage />} />
           <Route path="/posts/:id/edit" element={<EditPostPage />} />
+          <Route path="/verify-email" element={<VerifyEmailPage />} />
           <Route path="/reset/:token" element={<ResetPasswordPage />} /> {/* ⬅️ НОВИЙ РОУТ */}
           <Route path="*" element={<NotFoundPage />} />
         </Routes>

@@ -1,3 +1,4 @@
+// src/features/auth/ui/RegisterForm.jsx
 import React, { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { registerUser } from '../actions';
@@ -20,7 +21,10 @@ export default function RegisterForm() {
   const onSubmit = async (e) => {
     e.preventDefault();
     const ok = await dispatch(registerUser({ login, password, passwordConfirm, fullName, email }));
-    if (ok) navigate('/login'); // за OpenAPI — токена немає, ведемо на логін
+    if (ok) {
+      // ✅ після успішної реєстрації ведемо на сторінку підтвердження пошти
+      navigate('/verify-email', { state: { email } });
+    }
   };
 
   return (

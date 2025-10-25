@@ -277,3 +277,20 @@
   background: rgba(var(--danger-500-rgb) / 0.08);
 }
 .comment-delete:disabled { opacity: .6; cursor: not-allowed; }
+
+/* один рядок для мети + тумблера */
+.post-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between; /* ліва/права частини */
+  gap: 12px;
+  flex-wrap: wrap; /* на вузьких екранах переноситься */
+}
+
+/* щоб старі відступи не штовхали вниз */
+.post-status-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0; /* прибрати можливі старі margin-top */
+}

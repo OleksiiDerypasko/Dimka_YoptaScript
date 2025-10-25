@@ -1,4 +1,3 @@
-// src/shared/PostCard.jsx
 import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './PostCard.css';
@@ -12,8 +11,9 @@ import { selectAuthUser, selectAuthToken } from '../features/auth/selectors';
  *   variant: 'card' | 'line'
  *   showDelete?: boolean
  *   adminDelete?: boolean
- *   onDeleted?: (postId) => void
- *   showEdit?: boolean           // показати "Edit" (ми вмикаємо тільки у ProfileBottom)
+ *   onDeleted?: (postId, post) => void
+ *   onDeleteFailed?: (postId, post) => void
+ *   showEdit?: boolean
  */
 export default function PostCard({
   post,
@@ -21,6 +21,7 @@ export default function PostCard({
   showDelete = false,
   adminDelete = false,
   onDeleted,
+  onDeleteFailed,
   showEdit = false,
 }) {
   const {
@@ -33,7 +34,7 @@ export default function PostCard({
     likesCount = 0,
     dislikesCount = 0,
     commentsCount: commentsCountFromServer,
-    status, // якщо є — застосуємо стиль "inactive"
+    status,
   } = post || {};
 
   const navigate = useNavigate();
@@ -110,10 +111,19 @@ export default function PostCard({
 
   async function handleDelete(e) {
     e.stopPropagation();
-    if (!id) return;
-    if (!token) return;
+    if (!id || !token) return;
 
+    const confirmed = window.confirm(
+      adminDelete
+        ? `Admin: delete post "${title}"?`
+        : `Delete post "${title}"?`
+    );
+    if (!confirmed) return;
+
+    // оптимістичне видалення
+    onDeleted?.(id, post);
     setBusyDel(true);
+
     try {
       if (adminDelete) {
         await adminDeletePostApi(id, token);
@@ -121,8 +131,11 @@ export default function PostCard({
         if (!isOwner) { setBusyDel(false); return; }
         await deletePostApi(id, token);
       }
-      onDeleted?.(id);
-    } catch { /* swallow */ } finally {
+      // все ок
+    } catch (err) {
+      alert('Failed to delete. Restoring…');
+      onDeleteFailed?.(id, post);
+    } finally {
       setBusyDel(false);
     }
   }
@@ -132,7 +145,6 @@ export default function PostCard({
     if (id && isOwner) navigate(`/posts/${id}/edit`);
   }
 
-  // обрізання превʼю (візуально — через CSS clamp)
   const previewText = content || '';
 
   return (
@@ -154,13 +166,25 @@ export default function PostCard({
         <div className="pc__meta">
           <span className="pc__author">{authorFullName || authorLogin || 'Unknown'}</span>
           <span className="pc__dot">•</span>
-          <time className="pc__date">
-            {createdAt ? new Date(createdAt).toLocaleDateString() : ''}
-          </time>
+          {createdAt && (() => {
+            const dt = new Date(createdAt);
+            const label = dt.toLocaleString(undefined, {
+              year: 'numeric',
+              month: '2-digit',
+              day: '2-digit',
+              hour: '2-digit',
+              minute: '2-digit',
+            });
+            return (
+              <time className="pc__date" dateTime={dt.toISOString()} title={dt.toISOString()}>
+                {label}
+              </time>
+            );
+          })()}
         </div>
       </header>
 
-      {/* Заголовок + превʼю текст */}
+      {/* Заголовок + превʼю */}
       <div className="pc__main">
         <h3 className="pc__title">{title}</h3>
         <p className="pc__preview" title={previewText}>{previewText}</p>
@@ -177,21 +201,12 @@ export default function PostCard({
         )}
       </div>
 
-      {/* Футер: статистика + дії */}
+      {/* Футер */}
       <footer className="pc__foot" onClick={(e)=>e.stopPropagation()}>
         <div className="pc__badges" aria-label="Post stats">
-          <span className="pc-badge" title="Likes" aria-label={`${likesCount} likes`}>
-            <span className="pc-badge__icon" aria-hidden>👍</span>
-            <span className="pc-badge__val">{likesCount}</span>
-          </span>
-          <span className="pc-badge" title="Dislikes" aria-label={`${dislikesCount} dislikes`}>
-            <span className="pc-badge__icon" aria-hidden>👎</span>
-            <span className="pc-badge__val">{dislikesCount}</span>
-          </span>
-          <span className="pc-badge" title="Comments" aria-label={`${commentsCount} comments`}>
-            <span className="pc-badge__icon" aria-hidden>💬</span>
-            <span className="pc-badge__val">{Number.isFinite(commentsCount) ? commentsCount : 0}</span>
-          </span>
+          <span className="pc-badge" title="Likes"><span className="pc-badge__icon">👍</span><span className="pc-badge__val">{likesCount}</span></span>
+          <span className="pc-badge" title="Dislikes"><span className="pc-badge__icon">👎</span><span className="pc-badge__val">{dislikesCount}</span></span>
+          <span className="pc-badge" title="Comments"><span className="pc-badge__icon">💬</span><span className="pc-badge__val">{commentsCount}</span></span>
         </div>
 
         <div className="pc__actions">
@@ -216,5 +231,3 @@ export default function PostCard({
     </article>
   );
 }
-
-

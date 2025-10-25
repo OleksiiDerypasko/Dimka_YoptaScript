@@ -115,7 +115,7 @@ export default function ProfileBottom({ userId, userLogin }) {
         const data = await fetchPostsRaw({ ...base, favorite: true }, { token });
         let favs = data?.items || [];
 
-        // ✅ клієнтська фільтрація по категоріях
+        // клієнтська фільтрація по категоріях
         if (checked.length) {
           const catsByPost = await Promise.all(
             favs.map(async (p) => {
@@ -144,7 +144,7 @@ export default function ProfileBottom({ userId, userLogin }) {
             (userLogin && p.authorLogin === userLogin)
         );
 
-        // ✅ клієнтська фільтрація по категоріях
+        // клієнтська фільтрація по категоріях
         if (checked.length) {
           const catsByPost = await Promise.all(
             mine.map(async (p) => {
@@ -200,8 +200,21 @@ export default function ProfileBottom({ userId, userLogin }) {
     }
   }
 
-  function refetchMyPosts() {
-    applyAtPage(page);
+  // ✅ МІТТЄВЕ видалення на клієнті (optimistic): картка зникає одразу
+  function handlePostDeletedOptimistic(postId) {
+    if (activeTab !== 'my') return; // видаляти можемо лише у "My posts"
+    setAllMine(prevAll => {
+      const nextAll = prevAll.filter(p => p.id !== postId);
+      const nextTotal = nextAll.length;
+      const maxPage = Math.max(1, Math.ceil(nextTotal / limit));
+      const nextPage = Math.min(page, maxPage);
+
+      setTotal(nextTotal);
+      setPage(nextPage);
+      setItems(paginateLocal(nextAll, nextPage, limit));
+
+      return nextAll;
+    });
   }
 
   /* ====== Рендер ====== */
@@ -305,7 +318,7 @@ export default function ProfileBottom({ userId, userLogin }) {
                       showEdit={activeTab === 'my'}
                       showDelete={activeTab === 'my'}
                       adminDelete={false}
-                      onDeleted={refetchMyPosts}
+                      onDeleted={handlePostDeletedOptimistic}  
                     />
                   </div>
                 ))}
